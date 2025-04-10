@@ -1,39 +1,65 @@
-/* Estilos Neón / Synthwave Grid */
-body, html {
-    margin: 0; padding: 0; width: 100%; height: 100%;
-    overflow: hidden; display: flex; justify-content: center; align-items: center;
-    background: #000000;
-    font-family: 'Press Start 2P', 'Courier New', monospace;
+/* --- ESTILOS GENERALES --- */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+    /* Colores principales - Paleta neón */
+    --color-bg: #000000;
+    --color-grid: rgba(255, 255, 255, 0.08);
+    --color-primary: #00ffff; /* Cyan neón */
+    --color-secondary: #ff00ff; /* Magenta neón */
+    --color-accent: #ffff00; /* Amarillo neón */
+    --color-success: #00ff00; /* Verde neón */
+    --color-danger: #ff0000; /* Rojo neón */
+    --color-text: #ffffff;
+    
+    /* Sombras y brillos */
+    --glow-primary: 0 0 15px rgba(0, 255, 255, 0.7);
+    --glow-secondary: 0 0 15px rgba(255, 0, 255, 0.7);
+    --glow-accent: 0 0 15px rgba(255, 255, 0, 0.7);
+    --glow-success: 0 0 15px rgba(0, 255, 0, 0.7);
+    --glow-danger: 0 0 15px rgba(255, 0, 0, 0.7);
 }
 
-/* Fondo con efecto de gradiente animado */
+body, html {
+    margin: 0; 
+    padding: 0; 
+    width: 100%; 
+    height: 100%;
+    overflow: hidden; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+    background: var(--color-bg);
+    font-family: 'Press Start 2P', monospace;
+    color: var(--color-text);
+}
+
+/* --- CONTENEDOR DEL JUEGO --- */
 #gameContainer {
     width: 100%;
-    height: 100%;
+    height: 100vh;
     max-width: 1600px;
     max-height: 800px;
     aspect-ratio: 2 / 1; /* Mantiene la proporción 2:1 */
-    position: relative; overflow: hidden;
-    /* Fondo base negro */
-    background-color: #000000;
-    /* Gradiente animado de fondo */
+    position: relative; 
+    overflow: hidden;
+    /* Fondo con cuadrícula */
+    background-color: var(--color-bg);
     background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+        linear-gradient(var(--color-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
     background-size: 40px 40px;
-    /* Borde neón mejorado */
-    border: 3px solid #00ffff;
+    /* Borde neón */
+    border: 3px solid var(--color-primary);
     box-shadow: 
-        0 0 15px rgba(0, 255, 255, 0.7),
+        var(--glow-primary),
         0 0 25px rgba(0, 255, 255, 0.3) inset,
         0 0 5px rgba(0, 255, 255, 0.5);
-    /* Añadir gradiente animado de fondo */
+    /* Animación de fondo */
     animation: gridMove 15s linear infinite;
-    /* Reflejo de escaneo horizontal */
-    position: relative;
 }
 
-/* Efecto de "escaneo" que atraviesa periódicamente la pantalla */
+/* Efecto de "escaneo" que atraviesa la pantalla */
 #gameContainer::after {
     content: '';
     position: absolute;
@@ -51,6 +77,7 @@ body, html {
     );
     animation: scanLine 6s linear infinite;
     pointer-events: none; /* Permitir clicks a través */
+    z-index: 1;
 }
 
 @keyframes gridMove {
@@ -63,239 +90,8 @@ body, html {
     100% { left: 150%; }
 }
 
-/* Efecto de título pulsante y brillante */
-.screen h1 {
-    font-size: 36px; /* Reducido para fuente Atari */
-    margin-bottom: 30px;
-    color: #00ffff;
-    text-shadow: 
-        0 0 10px #00ffff,
-        0 0 20px #00ffff,
-        0 0 30px #00ffff,
-        0 0 40px #00ffff;
-    animation: titlePulse 2s infinite alternate;
-    letter-spacing: 2px;
-}
-
-@keyframes titlePulse {
-    from {
-        text-shadow: 
-            0 0 10px #00ffff,
-            0 0 20px #00ffff,
-            0 0 30px #00ffff;
-    }
-    to {
-        text-shadow: 
-            0 0 15px #00ffff,
-            0 0 25px #00ffff,
-            0 0 35px #00ffff,
-            0 0 45px #00ffff,
-            0 0 55px #00ffff;
-    }
-}
-
-/* Personaje jugador con efectos fluorescentes y destellos */
-#player {
-    width: 8.75%; /* Relativo al contenedor (140px en 1600px) */
-    height: 17.5%; /* Relativo al contenedor (140px en 800px) */
-    background: rgba(10, 10, 10, 0.5);
-    border: 4px solid #00ffff;
-    box-shadow: 
-        0 0 15px #00ffff, 
-        0 0 25px #00ffff inset,
-        0 0 5px #ffffff;
-    position: absolute;
-    bottom: 0;
-    left: 6.25%; /* 100px relativo a 1600px */
-    transition: transform 0.1s, border-color 0.3s, box-shadow 0.3s;
-    z-index: 5;
-    box-sizing: border-box;
-    animation: playerPulse 1.5s infinite alternate;
-}
-
-@keyframes playerPulse {
-    from { box-shadow: 0 0 15px #00ffff, 0 0 25px #00ffff inset, 0 0 5px #ffffff; }
-    to { box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff inset, 0 0 10px #ffffff; }
-}
-
-#player.powered {
-    border-color: #ffff00;
-    box-shadow: 
-        0 0 25px #ffff00, 
-        0 0 35px #ffff00 inset, 
-        0 0 15px #ffffff;
-    animation: poweredPulse 1s infinite alternate;
-}
-
-@keyframes poweredPulse {
-    from { 
-        box-shadow: 0 0 25px #ffff00, 0 0 35px #ffff00 inset, 0 0 15px #ffffff;
-        transform: scale(1);
-    }
-    to { 
-        box-shadow: 0 0 35px #ffff00, 0 0 45px #ffff00 inset, 0 0 25px #ffffff;
-        transform: scale(1.05);
-    }
-}
-
-#player.jumping {
-    box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff inset, 0 0 10px #ffffff;
-    animation: jumpGlow 0.3s;
-}
-
-@keyframes jumpGlow {
-    0% { box-shadow: 0 0 15px #00ffff, 0 0 25px #00ffff inset, 0 0 5px #ffffff; }
-    50% { box-shadow: 0 0 30px #00ffff, 0 0 40px #00ffff inset, 0 0 20px #ffffff; }
-    100% { box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff inset, 0 0 10px #ffffff; }
-}
-/* Obstáculos con efectos neón */
-.obstacle {
-    background: rgba(255, 0, 255, 0.3);
-    border: 4px solid #ff00ff;
-    box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff inset;
-    width: 3.875%; /* 62px relativo a 1600px */
-    height: 7.75%; /* 62px relativo a 800px */
-    position: absolute; 
-    bottom: 0;
-    z-index: 4; 
-    box-sizing: border-box;
-    /* Asegurar visibilidad */
-    visibility: visible !important;
-    display: block !important;
-    opacity: 1 !important;
-    animation: obstaclePulse 1s infinite alternate;
-}
-
-@keyframes obstaclePulse {
-    from { box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff inset; }
-    to { box-shadow: 0 0 25px #ff00ff, 0 0 35px #ff00ff inset; }
-}
-
-.obstacle.large {
-    width: 4.625%; /* 74px relativo a 1600px */
-    height: 9.25%; /* 74px relativo a 800px */
-}
-
-.obstacle.flying {
-    background: rgba(255, 0, 128, 0.3); /* Color ligeramente diferente */
-    border: 4px solid #ff0080; /* Borde rosa para obstáculos voladores */
-    box-shadow: 0 0 8px #ff0080, 0 0 15px #ff0080 inset;
-    animation: floating 2s infinite alternate ease-in-out;
-}
-
-@keyframes floating {
-    from { transform: translateY(0px); }
-    to { transform: translateY(-10px); }
-}
-
-/* Monedas con brillos y destellos */
-.coin {
-    width: 3.125%; /* 50px relativo a 1600px */
-    height: 6.25%; /* 50px relativo a 800px */
-    border-radius: 50%;
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 0.75em; /* Tamaño reducido para la fuente Atari */
-    color: #000000;
-    z-index: 4;
-    border: 2px solid rgba(0, 0, 0, 0.5);
-    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
-
-.coin::before {
-    content: '';
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    height: 10%;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 50%;
-    filter: blur(2px);
-}
-
-.coin.green {
-    background: #00ff00;
-    box-shadow: 0 0 20px #00ff00, 0 0 10px #00ff00 inset;
-    animation: coinSpin 3s infinite linear;
-}
-
-.coin.blue {
-    background: #0077ff;
-    box-shadow: 0 0 20px #0077ff, 0 0 10px #0077ff inset;
-    animation: coinSpin 2.5s infinite linear;
-}
-
-.coin.yellow {
-    background: #ffff00;
-    box-shadow: 0 0 25px #ffff00, 0 0 15px #ffff00 inset;
-    animation: yellowCoinPulse 0.5s infinite alternate;
-}
-
-@keyframes coinSpin {
-    0% { transform: rotateY(0deg); }
-    100% { transform: rotateY(360deg); }
-}
-
-@keyframes yellowCoinPulse {
-    from { transform: scale(1); box-shadow: 0 0 25px #ffff00, 0 0 15px #ffff00 inset; }
-    to { transform: scale(1.15); box-shadow: 0 0 40px #ffff00, 0 0 20px #ffff00 inset; }
-}
-
-/* UI elements: score, timer, combo */
-#score, #timer, #combo {
-    position: absolute;
-    top: 20px;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 10px 25px;
-    border: 2px solid #ffffff;
-    font-size: 20px;
-    color: #ffffff;
-    font-weight: bold;
-    border-radius: 8px;
-    z-index: 10;
-    min-width: 150px;
-    text-align: center;
-    text-shadow: 0 0 5px #ffffff, 0 0 10px rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-    animation: uiPulse 3s infinite alternate;
-}
-
-@keyframes uiPulse {
-    from { text-shadow: 0 0 5px #ffffff, 0 0 10px rgba(255, 255, 255, 0.5); }
-    to { text-shadow: 0 0 8px #ffffff, 0 0 15px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5); }
-}
-
-#score { 
-    right: 20px; 
-    color: #ffff00;
-    text-shadow: 0 0 5px #ffff00, 0 0 10px rgba(255, 255, 0, 0.5);
-    border-color: #ffff00;
-    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
-}
-
-#timer { 
-    left: 20px;
-    color: #00ffff;
-    text-shadow: 0 0 5px #00ffff, 0 0 10px rgba(0, 255, 255, 0.5);
-    border-color: #00ffff;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
-}
-
-#combo { 
-    left: 50%; 
-    transform: translateX(-50%);
-    color: #ff00ff;
-    text-shadow: 0 0 5px #ff00ff, 0 0 10px rgba(255, 0, 255, 0.5);
-    border-color: #ff00ff;
-    box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
-}
-/* Pantallas y modal */
-.screen { /* Pantallas de inicio y fin */
+/* --- PANTALLAS (REGISTRO, INICIO, RANKING) --- */
+.screen {
     position: absolute; 
     top: 0; 
     left: 0; 
@@ -308,91 +104,57 @@ body, html {
     justify-content: center;
     z-index: 20; 
     text-align: center; 
-    padding: 2.5%; /* 20px relativo a 800px */
+    padding: 20px;
     box-sizing: border-box;
-    color: #ffffff; /* Texto blanco por defecto */
 }
 
-.screen p {
-    font-size: 14px; /* Reducido para fuente Atari */
-    margin-bottom: 25px; line-height: 1.8; max-width: 600px;
-    color: #dddddd; /* Texto ligeramente más tenue */
-    text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
-}
-
-/* Hacer que los spans de colores en la descripción resalten más */
-.screen p span[style*="color:#c62828"] { color: #ff0000; font-weight: bold; text-shadow: 0 0 5px #ff0000;}
-.screen p span[style*="color:#2e7d32"] { color: #00ff00; font-weight: bold; text-shadow: 0 0 5px #00ff00;}
-.screen p span[style*="color:#0055cc"] { color: #0077ff; font-weight: bold; text-shadow: 0 0 5px #0077ff;}
-.screen p span[style*="color:#cc8800"] { color: #ffff00; font-weight: bold; text-shadow: 0 0 5px #ffff00;}
-
-/* Botones con efectos neón y destellos */
-.screen button {
-    background: linear-gradient(to bottom, #000000, #111111);
-    color: #00ff00;
-    border: 3px solid #00ff00;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5), 0 0 5px rgba(0, 255, 0, 0.3) inset;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 15px;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    position: relative;
-    overflow: hidden;
-    padding: 15px 30px;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 16px;
-    text-transform: uppercase;
+.screen h1 {
+    font-size: 36px;
+    margin-bottom: 30px;
+    color: var(--color-primary);
+    text-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary);
+    animation: titlePulse 2s infinite alternate;
     letter-spacing: 2px;
 }
 
-.screen button::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: linear-gradient(transparent, rgba(255, 255, 255, 0.1), transparent);
-    transform: rotate(45deg);
-    animation: buttonGlow 3s infinite linear;
+@keyframes titlePulse {
+    from { text-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary); }
+    to { text-shadow: 0 0 15px var(--color-primary), 0 0 25px var(--color-primary), 0 0 35px var(--color-primary); }
 }
 
-@keyframes buttonGlow {
-    0% { left: -200%; }
-    100% { left: 200%; }
+.screen p {
+    font-size: 14px;
+    margin-bottom: 25px; 
+    line-height: 1.8; 
+    max-width: 600px;
+    color: #dddddd;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
 }
 
-.screen button:hover {
-    background: #00ff00;
-    color: #000000;
-    box-shadow: 0 0 25px rgba(0, 255, 0, 0.8), 0 0 15px rgba(0, 255, 0, 0.5) inset;
-    transform: translateY(-3px);
-}
+/* Estilo para los textos de colores */
+.screen p span[style*="color:#c62828"] { color: var(--color-danger); font-weight: bold; text-shadow: 0 0 5px var(--color-danger); }
+.screen p span[style*="color:#2e7d32"] { color: var(--color-success); font-weight: bold; text-shadow: 0 0 5px var(--color-success); }
+.screen p span[style*="color:#0055cc"] { color: var(--color-primary); font-weight: bold; text-shadow: 0 0 5px var(--color-primary); }
+.screen p span[style*="color:#cc8800"] { color: var(--color-accent); font-weight: bold; text-shadow: 0 0 5px var(--color-accent); }
 
-.screen button:active {
-    transform: translateY(1px);
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), 0 0 3px rgba(0, 255, 0, 0.3) inset;
-}
-
-/* Formulario de registro mejorado */
+/* --- FORMULARIO DE REGISTRO --- */
 .form-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
     max-width: 500px;
-    padding: 20px;
+    padding: 30px;
     margin: 0 auto;
     background: rgba(0, 0, 0, 0.7);
-    border: 2px solid #00ffff;
+    border: 2px solid var(--color-primary);
     border-radius: 10px;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5), 0 0 25px rgba(0, 255, 255, 0.3) inset;
+    box-shadow: var(--glow-primary), 0 0 25px rgba(0, 255, 255, 0.3) inset;
     animation: form-glow 3s infinite alternate;
 }
 
 @keyframes form-glow {
-    from { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5), 0 0 25px rgba(0, 255, 255, 0.3) inset; }
+    from { box-shadow: var(--glow-primary), 0 0 25px rgba(0, 255, 255, 0.3) inset; }
     to { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8), 0 0 35px rgba(0, 255, 255, 0.5) inset; }
 }
 
@@ -404,10 +166,10 @@ body, html {
 
 .form-group label {
     display: block;
-    color: #00ffff;
+    color: var(--color-primary);
     margin-bottom: 8px;
     font-size: 14px;
-    text-shadow: 0 0 5px #00ffff;
+    text-shadow: 0 0 5px var(--color-primary);
 }
 
 .form-group input[type="text"],
@@ -416,9 +178,9 @@ body, html {
     padding: 12px 15px;
     font-family: 'Press Start 2P', monospace;
     font-size: 14px;
-    color: #00ffff;
+    color: var(--color-primary);
     background-color: rgba(0, 0, 0, 0.6);
-    border: 2px solid #00ffff;
+    border: 2px solid var(--color-primary);
     border-radius: 5px;
     outline: none;
     box-shadow: 0 0 8px rgba(0, 255, 255, 0.3) inset;
@@ -426,7 +188,7 @@ body, html {
 }
 
 .form-group input:focus {
-    border-color: #ff00ff;
+    border-color: var(--color-secondary);
     box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
 }
 
@@ -434,6 +196,7 @@ body, html {
     color: rgba(0, 255, 255, 0.5);
     font-size: 12px;
 }
+
 /* Estilo mejorado para el checkbox */
 .checkbox-container {
     display: flex;
@@ -447,7 +210,7 @@ body, html {
     width: 24px;
     height: 24px;
     background-color: rgba(0, 0, 0, 0.6);
-    border: 2px solid #00ffff;
+    border: 2px solid var(--color-primary);
     border-radius: 4px;
     margin-right: 10px;
     cursor: pointer;
@@ -457,8 +220,8 @@ body, html {
 }
 
 .checkbox-container input[type="checkbox"]:checked {
-    background-color: #00ffff;
-    box-shadow: 0 0 10px #00ffff;
+    background-color: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary);
 }
 
 .checkbox-container input[type="checkbox"]:checked::before {
@@ -478,7 +241,7 @@ body, html {
 }
 
 .checkbox-container a {
-    color: #00ffff;
+    color: var(--color-primary);
     text-decoration: none;
     transition: all 0.2s;
     position: relative;
@@ -486,7 +249,7 @@ body, html {
 }
 
 .checkbox-container a:hover {
-    text-shadow: 0 0 8px #00ffff;
+    text-shadow: 0 0 8px var(--color-primary);
 }
 
 .checkbox-container a::after {
@@ -496,35 +259,38 @@ body, html {
     left: 0;
     width: 0;
     height: 1px;
-    background: #00ffff;
+    background: var(--color-primary);
     transition: width 0.3s;
 }
 
 .checkbox-container a:hover::after {
     width: 100%;
-    box-shadow: 0 0 5px #00ffff;
+    box-shadow: 0 0 5px var(--color-primary);
 }
 
-/* Botón de registro mejorado */
+/* --- BOTONES --- */
+.screen button,
 #registerButton {
-    background: linear-gradient(to right, #00cc00, #00ff00);
-    color: #000000;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 16px;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 5px;
+    background: linear-gradient(to bottom, #000000, #111111);
+    color: var(--color-success);
+    border: 3px solid var(--color-success);
+    box-shadow: var(--glow-success), 0 0 5px rgba(0, 255, 0, 0.3) inset;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.3s;
-    display: block;
-    margin: 25px auto 0;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    font-weight: bold;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+    padding: 15px 30px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    min-width: 200px;
 }
 
+.screen button::before,
 #registerButton::before {
     content: '';
     position: absolute;
@@ -532,138 +298,40 @@ body, html {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(transparent, rgba(255, 255, 255, 0.2), transparent);
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.1), transparent);
     transform: rotate(45deg);
-    transition: all 0.3s;
+    animation: buttonGlow 3s infinite linear;
 }
 
+@keyframes buttonGlow {
+    0% { left: -200%; }
+    100% { left: 200%; }
+}
+
+.screen button:hover,
 #registerButton:hover {
-    background: linear-gradient(to right, #00ff00, #00cc00);
-    box-shadow: 0 0 25px rgba(0, 255, 0, 0.9);
-    transform: scale(1.05);
-}
-
-#registerButton:hover::before {
-    left: 100%;
-}
-
-#registerButton:active {
-    transform: scale(0.98);
-}
-
-/* Modal de términos y condiciones */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 30;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0, 0, 0, 0.8);
-    animation: fadeIn 0.3s;
-}
-
-@keyframes fadeIn {
-    from {opacity: 0;}
-    to {opacity: 1;}
-}
-
-.modal-content {
-    position: relative;
-    background-color: #0a0a0a;
-    margin: 5% auto;
-    padding: 20px;
-    border: 2px solid #00ffff;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
-    width: 80%;
-    max-width: 800px;
-    max-height: 80vh;
-    border-radius: 8px;
-    overflow: hidden;
-    animation: modalSlideIn 0.4s;
-}
-
-@keyframes modalSlideIn {
-    from {transform: translateY(-50px); opacity: 0;}
-    to {transform: translateY(0); opacity: 1;}
-}
-
-.close-btn {
-    color: #00ffff;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.close-btn:hover {
-    color: #ffffff;
-    text-shadow: 0 0 10px #00ffff;
-}
-
-.modal-content h2 {
-    color: #00ffff;
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 24px;
-    text-shadow: 0 0 5px #00ffff;
-}
-
-.modal-content h3 {
-    color: #00ffff;
-    margin-top: 20px;
-    margin-bottom: 10px;
-    font-size: 16px;
-}
-
-.terms-content {
-    max-height: 50vh;
-    overflow-y: auto;
-    padding: 10px;
-    margin-bottom: 20px;
-    border: 1px solid #333;
-    background-color: rgba(0, 0, 0, 0.3);
-}
-
-.terms-content p {
-    color: #cccccc;
-    font-size: 12px;
-    line-height: 1.8;
-    margin-bottom: 15px;
-}
-
-#acceptTermsBtn {
-    display: block;
-    margin: 0 auto;
-    padding: 10px 20px;
-    background: #000000;
-    color: #00ff00;
-    border: 2px solid #00ff00;
-    border-radius: 5px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-family: 'Press Start 2P', monospace;
-}
-
-#acceptTermsBtn:hover {
-    background: #00ff00;
+    background: var(--color-success);
     color: #000000;
-    box-shadow: 0 0 10px #00ff00;
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.8), 0 0 15px rgba(0, 255, 0, 0.5) inset;
+    transform: translateY(-3px);
 }
-/* Botón de ranking y ventana modal */
-.ranking-btn {
-    position: absolute;
+
+.screen button:active,
+#registerButton:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), 0 0 3px rgba(0, 255, 0, 0.3) inset;
+}
+
+/* --- RANKING BUTTON Y MODAL --- */
+#rankingButton {
+    position: fixed;
     top: 20px;
     right: 20px;
     background: rgba(0, 0, 0, 0.7);
-    border: 2px solid #ffcc00;
+    border: 2px solid var(--color-accent);
     border-radius: 5px;
     padding: 10px 15px;
-    color: #ffcc00;
+    color: var(--color-accent);
     font-family: 'Press Start 2P', monospace;
     font-size: 12px;
     cursor: pointer;
@@ -672,19 +340,12 @@ body, html {
     z-index: 25;
 }
 
-.ranking-btn:hover {
+#rankingButton:hover {
     background: rgba(255, 204, 0, 0.2);
     box-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
     transform: scale(1.05);
 }
 
-.ranking-btn span {
-    display: inline-block;
-    position: relative;
-    z-index: 2;
-}
-
-/* Ventana modal para ver ranking desde el inicio */
 .ranking-modal {
     display: none;
     position: fixed;
@@ -698,12 +359,17 @@ body, html {
     animation: fadeIn 0.3s;
 }
 
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
 .ranking-modal-content {
     position: relative;
     background-color: #0a0a0a;
     margin: 5% auto;
     padding: 20px;
-    border: 2px solid #ffcc00;
+    border: 2px solid var(--color-accent);
     box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
     width: 80%;
     max-width: 600px;
@@ -713,75 +379,19 @@ body, html {
     animation: modalSlideIn 0.4s;
 }
 
-.ranking-modal h2 {
-    color: #ffcc00;
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 24px;
-    text-shadow: 0 0 5px #ffcc00;
+@keyframes modalSlideIn {
+    from {transform: translateY(-50px); opacity: 0;}
+    to {transform: translateY(0); opacity: 1;}
 }
 
-.ranking-close-btn {
-    color: #ffcc00;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.ranking-close-btn:hover {
-    color: #ffffff;
-    text-shadow: 0 0 10px #ffcc00;
-}
-
-/* Efectos para textos flotantes */
-.floating-text {
-    position: absolute;
-    font-size: 24px;
-    font-weight: bold;
-    animation: floatUpWithGlow 1.2s forwards ease-out;
-    z-index: 99;
-    pointer-events: none;
-    filter: drop-shadow(0 0 5px currentColor);
-}
-
-@keyframes floatUpWithGlow {
-    0% { 
-        transform: translateY(0) scale(1); 
-        opacity: 1;
-        filter: drop-shadow(0 0 5px currentColor);
-    }
-    50% {
-        filter: drop-shadow(0 0 10px currentColor);
-    }
-    100% { 
-        transform: translateY(-80px) scale(0.8); 
-        opacity: 0;
-        filter: drop-shadow(0 0 2px currentColor);
-    }
-}
-
-.plus {
-    color: #00ff00;
-    text-shadow: 0 0 8px #00ff00, 0 0 15px #ffffff;
-}
-
-.minus {
-    color: #ff0000;
-    text-shadow: 0 0 8px #ff0000, 0 0 15px #ffffff;
-}
-/* Efecto para la tabla de ranking */
 #ranking {
-    margin-top: 2.5%; /* 20px relativo a 800px */
-    font-size: 1.75vmin; /* Tamaño relativo a la ventana */
-    max-height: 43.75%; /* 350px relativo a 800px */
-    overflow-y: auto; 
-    width: 80%; 
-    max-width: 31.25%; /* 500px relativo a 1600px */
-    border: 1px solid #444; /* Borde gris oscuro */
-    padding: 1.25%; /* 10px relativo a 800px */
-    background-color: rgba(10, 10, 10, 0.85); /* Fondo casi negro translúcido */
+    margin-top: 20px;
+    max-height: 350px;
+    overflow-y: auto;
+    width: 100%;
+    border: 1px solid #444;
+    padding: 10px;
+    background-color: rgba(10, 10, 10, 0.85);
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.1) inset;
 }
@@ -800,8 +410,8 @@ body, html {
 
 #ranking th {
     background-color: #1a1a1a;
-    color: #00ffff;
-    text-shadow: 0 0 5px #00ffff;
+    color: var(--color-primary);
+    text-shadow: 0 0 5px var(--color-primary);
     padding: 10px;
     border: 1px solid #333;
     position: sticky;
@@ -825,7 +435,7 @@ body, html {
     text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
-/* Efectos para los primeros 3 puestos del ranking */
+/* Top 3 jugadores destacados */
 #ranking tr:nth-child(1) td {
     background-color: rgba(255, 215, 0, 0.2); /* Oro */
     color: #ffd700;
@@ -844,25 +454,180 @@ body, html {
     text-shadow: 0 0 5px #cd7f32;
 }
 
-/* Efecto de sacudida de pantalla al choque */
-@keyframes shake {
-    0% { transform: translate(0, 0); }
-    25% { transform: translate(-15px, 0); }
-    50% { transform: translate(15px, 0); }
-    75% { transform: translate(-15px, 0); }
-    100% { transform: translate(0, 0); }
+.ranking-close-btn {
+    color: var(--color-accent);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-/* Clase para aplicar la animación de sacudida */
-.shake {
-    animation: shake 0.3s;
+.ranking-close-btn:hover {
+    color: #ffffff;
+    text-shadow: 0 0 10px var(--color-accent);
 }
 
-/* Destello rojo en contenedor al recibir impacto */
-#gameContainer.hit {
-    border-color: #ff0000 !important;
-    box-shadow: 0 0 25px rgba(255, 0, 0, 0.7),
-                0 0 15px rgba(255, 0, 0, 0.5) inset;
+/* --- MODAL DE TÉRMINOS --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 30;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #0a0a0a;
+    margin: 5% auto;
+    padding: 20px;
+    border: 2px solid var(--color-primary);
+    box-shadow: var(--glow-primary);
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    border-radius: 8px;
+    overflow: hidden;
+    animation: modalSlideIn 0.4s;
+}
+
+.close-btn {
+    color: var(--color-primary);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    color: #ffffff;
+    text-shadow: 0 0 10px var(--color-primary);
+}
+
+.terms-content {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #333;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.terms-content p {
+    color: #cccccc;
+    font-size: 12px;
+    line-height: 1.8;
+    margin-bottom: 15px;
+}
+
+#acceptTermsBtn {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 20px;
+    background: #000000;
+    color: var(--color-success);
+    border: 2px solid var(--color-success);
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Press Start 2P', monospace;
+}
+
+#acceptTermsBtn:hover {
+    background: var(--color-success);
+    color: #000000;
+    box-shadow: 0 0 10px var(--color-success);
+}
+
+/* --- ORIENTACIÓN Y RESPONSIVE DESIGN --- */
+#orientation-message {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    color: var(--color-primary);
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    flex-direction: column;
+    text-align: center;
+    font-family: 'Press Start 2P', monospace;
+}
+
+#orientation-message .rotate-icon {
+    font-size: 50px;
+    margin: 20px;
+    animation: rotate 2s infinite linear;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(90deg); }
+}
+
+/* --- MEDIA QUERIES --- */
+@media screen and (max-width: 768px) {
+    .screen h1 {
+        font-size: 24px;
+    }
+    
+    .screen p {
+        font-size: 12px;
+        max-width: 90%;
+    }
+    
+    .form-group {
+        width: 90%;
+    }
+    
+    .screen button, #registerButton {
+        padding: 12px 20px;
+        font-size: 14px;
+        min-width: 180px;
+    }
+    
+    .ranking-modal-content {
+        width: 90%;
+        padding: 15px;
+    }
+    
+    #rankingButton {
+        padding: 8px 12px;
+        font-size: 10px;
+    }
+    
+    /* Mostrar el mensaje de orientación solo en modo retrato */
+    @media (orientation: portrait) {
+        #orientation-message {
+            display: flex;
+        }
+        
+        #gameContainer {
+            display: none;
+        }
+    }
+}
+
+/* Soporte específico para iPhone */
+@supports (-webkit-touch-callout: none) {
+    #gameContainer {
+        height: -webkit-fill-available;
+    }
+    
+    body, html {
+        height: -webkit-fill-available;
+    }
 }
 
 /* Controles de sonido */
@@ -873,7 +638,7 @@ body, html {
     width: 40px;
     height: 40px;
     background: rgba(0, 0, 0, 0.7);
-    border: 2px solid #00ffff;
+    border: 2px solid var(--color-primary);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -881,7 +646,7 @@ body, html {
     cursor: pointer;
     z-index: 1000;
     transition: all 0.3s;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    box-shadow: var(--glow-primary);
 }
 
 .sound-control:hover {
@@ -891,111 +656,7 @@ body, html {
 
 .sound-icon {
     font-size: 20px;
-    color: #00ffff;
-    text-shadow: 0 0 5px #00ffff;
+    color: var(--color-primary);
+    text-shadow: 0 0 5px var(--color-primary);
     font-style: normal;
-}
-
-/* Optimizaciones móviles */
-@media screen and (max-width: 768px) {
-    #gameContainer {
-        width: 100vw;
-        height: 100vh;
-        max-width: 100%;
-        max-height: 100%;
-        border-radius: 0;
-    }
-    
-    .screen h1 {
-        font-size: 6vmin;
-        margin-bottom: 3vmin;
-    }
-    
-    .screen p {
-        font-size: 2.5vmin;
-        line-height: 1.5;
-        max-width: 85%;
-    }
-    
-    .form-group {
-        width: 80%;
-        max-width: 300px;
-    }
-    
-    .screen input {
-        padding: 2vmin;
-        font-size: 2.5vmin;
-        width: 100%;
-    }
-    
-    .screen button {
-        padding: 2vmin 4vmin;
-        font-size: 3vmin;
-    }
-    
-    /* Botones más grandes para facilitar el toque */
-    button {
-        min-width: 150px;
-        min-height: 44px; /* Mínimo recomendado para elementos táctiles */
-    }
-    
-    /* Controles de juego específicos para móviles */
-    .mobile-controls {
-        display: flex;
-        position: absolute;
-        bottom: 20px;
-        left: 0;
-        right: 0;
-        justify-content: space-around;
-        z-index: 100;
-    }
-    
-    .mobile-control-button {
-        width: 80px;
-        height: 80px;
-        background: rgba(0, 255, 255, 0.3);
-        border: 2px solid #00ffff;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 24px;
-        box-shadow: 0 0 10px #00ffff;
-    }
-}
-
-/* Forzar orientación horizontal en móviles */
-@media screen and (orientation: portrait) and (max-width: 768px) {
-    #orientation-message {
-        display: flex !important;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.9);
-        color: #00ffff;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        flex-direction: column;
-        text-align: center;
-        font-family: 'Press Start 2P', monospace;
-    }
-    
-    #orientation-message .rotate-icon {
-        font-size: 50px;
-        margin: 20px;
-        animation: rotate 2s infinite linear;
-    }
-    
-    #gameContainer {
-        display: none;
-    }
-    
-    @keyframes rotate {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(90deg); }
-    }
 }
