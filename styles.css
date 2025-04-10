@@ -1,78 +1,158 @@
-/* Importar fuente Press Start 2P (estilo Atari) */
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
 /* Estilos Neón / Synthwave Grid */
 body, html {
-    margin: 0; 
-    padding: 0; 
-    width: 100%; 
-    height: 100%;
-    overflow: hidden; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center;
-    /* Fondo negro */
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden; display: flex; justify-content: center; align-items: center;
     background: #000000;
-    font-family: 'Press Start 2P', 'Courier New', monospace; /* Fuente estilo Atari */
+    font-family: 'Press Start 2P', 'Courier New', monospace;
 }
 
+/* Fondo con efecto de gradiente animado */
 #gameContainer {
     width: 100%;
     height: 100%;
     max-width: 1600px;
     max-height: 800px;
     aspect-ratio: 2 / 1; /* Mantiene la proporción 2:1 */
-    position: relative; 
-    overflow: hidden;
-    /* Fondo negro con cuadrícula blanca semitransparente */
+    position: relative; overflow: hidden;
+    /* Fondo base negro */
     background-color: #000000;
-    background-image:
-        linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px), /* Líneas horizontales */
-        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px); /* Líneas verticales */
-    background-size: 40px 40px; /* Tamaño de la cuadrícula */
-    /* Borde y brillo neón para el contenedor */
-    border: 3px solid #00ffff; /* Cyan */
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.7), 0 0 5px rgba(0, 255, 255, 0.5) inset;
-    /* MEJORA INTEGRADA: Transición suave para cambios de borde y brillo (útil para .hit) */
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    /* Gradiente animado de fondo */
+    background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+    /* Borde neón mejorado */
+    border: 3px solid #00ffff;
+    box-shadow: 
+        0 0 15px rgba(0, 255, 255, 0.7),
+        0 0 25px rgba(0, 255, 255, 0.3) inset,
+        0 0 5px rgba(0, 255, 255, 0.5);
+    /* Añadir gradiente animado de fondo */
+    animation: gridMove 15s linear infinite;
+    /* Reflejo de escaneo horizontal */
+    position: relative;
 }
 
+/* Efecto de "escaneo" que atraviesa periódicamente la pantalla */
+#gameContainer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(0, 255, 255, 0.05) 45%,
+        rgba(0, 255, 255, 0.1) 50%,
+        rgba(0, 255, 255, 0.05) 55%,
+        transparent 100%
+    );
+    animation: scanLine 6s linear infinite;
+    pointer-events: none; /* Permitir clicks a través */
+}
+
+@keyframes gridMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+}
+
+@keyframes scanLine {
+    0% { left: -150%; }
+    100% { left: 150%; }
+}
+
+/* Efecto de título pulsante y brillante */
+.screen h1 {
+    font-size: 36px; /* Reducido para fuente Atari */
+    margin-bottom: 30px;
+    color: #00ffff;
+    text-shadow: 
+        0 0 10px #00ffff,
+        0 0 20px #00ffff,
+        0 0 30px #00ffff,
+        0 0 40px #00ffff;
+    animation: titlePulse 2s infinite alternate;
+    letter-spacing: 2px;
+}
+
+@keyframes titlePulse {
+    from {
+        text-shadow: 
+            0 0 10px #00ffff,
+            0 0 20px #00ffff,
+            0 0 30px #00ffff;
+    }
+    to {
+        text-shadow: 
+            0 0 15px #00ffff,
+            0 0 25px #00ffff,
+            0 0 35px #00ffff,
+            0 0 45px #00ffff,
+            0 0 55px #00ffff;
+    }
+}
+
+/* Personaje jugador con efectos fluorescentes y destellos */
 #player {
     width: 8.75%; /* Relativo al contenedor (140px en 1600px) */
     height: 17.5%; /* Relativo al contenedor (140px en 800px) */
-    /* Fondo oscuro, borde y brillo neón */
-    background: rgba(10, 10, 10, 0.5); /* Ligeramente visible */
-    border: 4px solid #00ffff; /* Cyan */
-    box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff inset;
-    position: absolute; 
-    bottom: 0; 
+    background: rgba(10, 10, 10, 0.5);
+    border: 4px solid #00ffff;
+    box-shadow: 
+        0 0 15px #00ffff, 
+        0 0 25px #00ffff inset,
+        0 0 5px #ffffff;
+    position: absolute;
+    bottom: 0;
     left: 6.25%; /* 100px relativo a 1600px */
-    transition: transform 0.1s, border-color 0.3s, box-shadow 0.3s; /* 'transform' permite animar saltos y .collected */
-    z-index: 5; 
+    transition: transform 0.1s, border-color 0.3s, box-shadow 0.3s;
+    z-index: 5;
     box-sizing: border-box;
+    animation: playerPulse 1.5s infinite alternate;
+}
+
+@keyframes playerPulse {
+    from { box-shadow: 0 0 15px #00ffff, 0 0 25px #00ffff inset, 0 0 5px #ffffff; }
+    to { box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff inset, 0 0 10px #ffffff; }
 }
 
 #player.powered {
-    /* Poder amarillo neón */
-    border-color: #ffff00; /* Amarillo */
-    box-shadow: 0 0 25px #ffff00, 0 0 35px #ffff00 inset, 0 0 10px #00ffff; /* Amarillo + base Cyan */
+    border-color: #ffff00;
+    box-shadow: 
+        0 0 25px #ffff00, 
+        0 0 35px #ffff00 inset, 
+        0 0 15px #ffffff;
+    animation: poweredPulse 1s infinite alternate;
+}
+
+@keyframes poweredPulse {
+    from { 
+        box-shadow: 0 0 25px #ffff00, 0 0 35px #ffff00 inset, 0 0 15px #ffffff;
+        transform: scale(1);
+    }
+    to { 
+        box-shadow: 0 0 35px #ffff00, 0 0 45px #ffff00 inset, 0 0 25px #ffffff;
+        transform: scale(1.05);
+    }
 }
 
 #player.jumping {
-    /* Podríamos intensificar el brillo al saltar */
-    box-shadow: 0 0 15px #00ffff, 0 0 25px #00ffff inset, 0 0 5px #ffffff;
+    box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff inset, 0 0 10px #ffffff;
+    animation: jumpGlow 0.3s;
 }
 
-/* MEJORA INTEGRADA: Nueva animación de recolección: pequeño escalado */
-#player.collected {
-    transform: scale(1.1); /* La transición existente en #player lo hará suave */
+@keyframes jumpGlow {
+    0% { box-shadow: 0 0 15px #00ffff, 0 0 25px #00ffff inset, 0 0 5px #ffffff; }
+    50% { box-shadow: 0 0 30px #00ffff, 0 0 40px #00ffff inset, 0 0 20px #ffffff; }
+    100% { box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff inset, 0 0 10px #ffffff; }
 }
-
+/* Obstáculos con efectos neón */
 .obstacle {
-    /* Obstáculo magenta neón */
-    background: rgba(255, 0, 255, 0.3); /* Relleno semitransparente */
-    border: 4px solid #ff00ff; /* Magenta */
-    box-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff inset;
+    background: rgba(255, 0, 255, 0.3);
+    border: 4px solid #ff00ff;
+    box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff inset;
     width: 3.875%; /* 62px relativo a 1600px */
     height: 7.75%; /* 62px relativo a 800px */
     position: absolute; 
@@ -80,9 +160,15 @@ body, html {
     z-index: 4; 
     box-sizing: border-box;
     /* Asegurar visibilidad */
-    opacity: 1 !important;
     visibility: visible !important;
     display: block !important;
+    opacity: 1 !important;
+    animation: obstaclePulse 1s infinite alternate;
+}
+
+@keyframes obstaclePulse {
+    from { box-shadow: 0 0 15px #ff00ff, 0 0 25px #ff00ff inset; }
+    to { box-shadow: 0 0 25px #ff00ff, 0 0 35px #ff00ff inset; }
 }
 
 .obstacle.large {
@@ -90,69 +176,131 @@ body, html {
     height: 9.25%; /* 74px relativo a 800px */
 }
 
+.obstacle.flying {
+    background: rgba(255, 0, 128, 0.3); /* Color ligeramente diferente */
+    border: 4px solid #ff0080; /* Borde rosa para obstáculos voladores */
+    box-shadow: 0 0 8px #ff0080, 0 0 15px #ff0080 inset;
+    animation: floating 2s infinite alternate ease-in-out;
+}
+
+@keyframes floating {
+    from { transform: translateY(0px); }
+    to { transform: translateY(-10px); }
+}
+
+/* Monedas con brillos y destellos */
 .coin {
     width: 3.125%; /* 50px relativo a 1600px */
     height: 6.25%; /* 50px relativo a 800px */
     border-radius: 50%;
-    position: absolute; 
-    display: flex; 
-    align-items: center; 
+    position: absolute;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    font-weight: bold; 
+    font-weight: bold;
     font-size: 0.75em; /* Tamaño reducido para la fuente Atari */
-    color: #000000; /* Texto negro para contraste con fondo neón */
-    /* Sombra/brillo definido por tipo */
+    color: #000000;
     z-index: 4;
-    border: 2px solid rgba(0, 0, 0, 0.5); /* Borde oscuro sutil */
+    border: 2px solid rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+.coin::before {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 10%;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    filter: blur(2px);
 }
 
 .coin.green {
-    background: #00ff00; /* Verde Neón */
-    box-shadow: 0 0 12px #00ff00, 0 0 5px #ffffff inset;
+    background: #00ff00;
+    box-shadow: 0 0 20px #00ff00, 0 0 10px #00ff00 inset;
+    animation: coinSpin 3s infinite linear;
 }
+
 .coin.blue {
-    background: #0077ff; /* Azul Eléctrico */
-    box-shadow: 0 0 12px #0077ff, 0 0 5px #ffffff inset;
+    background: #0077ff;
+    box-shadow: 0 0 20px #0077ff, 0 0 10px #0077ff inset;
+    animation: coinSpin 2.5s infinite linear;
 }
+
 .coin.yellow {
-    background: #ffff00; /* Amarillo Neón */
-    box-shadow: 0 0 12px #ffff00, 0 0 5px #ffffff inset;
-    animation: pulse 0.5s infinite alternate;
+    background: #ffff00;
+    box-shadow: 0 0 25px #ffff00, 0 0 15px #ffff00 inset;
+    animation: yellowCoinPulse 0.5s infinite alternate;
 }
 
-@keyframes pulse {
-    from { transform: scale(1); box-shadow: 0 0 12px currentColor, 0 0 5px #ffffff inset; }
-    to { transform: scale(1.1); box-shadow: 0 0 20px currentColor, 0 0 10px #ffffff inset; }
+@keyframes coinSpin {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
 }
 
+@keyframes yellowCoinPulse {
+    from { transform: scale(1); box-shadow: 0 0 25px #ffff00, 0 0 15px #ffff00 inset; }
+    to { transform: scale(1.15); box-shadow: 0 0 40px #ffff00, 0 0 20px #ffff00 inset; }
+}
+
+/* UI elements: score, timer, combo */
 #score, #timer, #combo {
-    position: absolute; 
-    top: 2.5%; /* 20px relativo a 800px */
-    /* Fondo oscuro semitransparente, borde y texto blanco */
+    position: absolute;
+    top: 20px;
     background: rgba(0, 0, 0, 0.6);
-    padding: 1.25% 3.125%; /* 10px 25px relativo a 800px y 1600px */
+    padding: 10px 25px;
     border: 2px solid #ffffff;
-    font-size: 2.5vmin; /* Tamaño relativo a la ventana */
+    font-size: 20px;
     color: #ffffff;
-    font-weight: bold; 
-    border-radius: 8px; 
+    font-weight: bold;
+    border-radius: 8px;
     z-index: 10;
-    min-width: 9.375%; /* 150px relativo a 1600px */
+    min-width: 150px;
     text-align: center;
-    /* Sombra de texto para efecto neón */
     text-shadow: 0 0 5px #ffffff, 0 0 10px rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    animation: uiPulse 3s infinite alternate;
 }
-#score { right: 1.25%; /* 20px relativo a 1600px */ }
-#timer { left: 1.25%; /* 20px relativo a 1600px */ }
-#combo { left: 50%; transform: translateX(-50%); }
 
+@keyframes uiPulse {
+    from { text-shadow: 0 0 5px #ffffff, 0 0 10px rgba(255, 255, 255, 0.5); }
+    to { text-shadow: 0 0 8px #ffffff, 0 0 15px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.5); }
+}
+
+#score { 
+    right: 20px; 
+    color: #ffff00;
+    text-shadow: 0 0 5px #ffff00, 0 0 10px rgba(255, 255, 0, 0.5);
+    border-color: #ffff00;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+}
+
+#timer { 
+    left: 20px;
+    color: #00ffff;
+    text-shadow: 0 0 5px #00ffff, 0 0 10px rgba(0, 255, 255, 0.5);
+    border-color: #00ffff;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+}
+
+#combo { 
+    left: 50%; 
+    transform: translateX(-50%);
+    color: #ff00ff;
+    text-shadow: 0 0 5px #ff00ff, 0 0 10px rgba(255, 0, 255, 0.5);
+    border-color: #ff00ff;
+    box-shadow: 0 0 10px rgba(255, 0, 255, 0.3);
+}
+/* Pantallas y modal */
 .screen { /* Pantallas de inicio y fin */
     position: absolute; 
     top: 0; 
     left: 0; 
     width: 100%; 
     height: 100%;
-    /* Fondo negro semitransparente */
     background: rgba(0, 0, 0, 0.9);
     display: flex; 
     flex-direction: column;
@@ -164,106 +312,243 @@ body, html {
     box-sizing: border-box;
     color: #ffffff; /* Texto blanco por defecto */
 }
-.screen h1 {
-    font-size: 4.5vmin; /* Tamaño relativo a la ventana */
-    margin-bottom: 3.75%; /* 30px relativo a 800px */
-    color: #00ffff; /* Título en Cyan */
-    text-shadow: 0 0 8px #00ffff, 0 0 15px rgba(0, 255, 255, 0.7);
-}
+
 .screen p {
-    font-size: 1.75vmin; /* Tamaño relativo a la ventana */
-    margin-bottom: 3.125%; /* 25px relativo a 800px */
-    line-height: 1.8; 
-    max-width: 37.5%; /* 600px relativo a 1600px */
+    font-size: 14px; /* Reducido para fuente Atari */
+    margin-bottom: 25px; line-height: 1.8; max-width: 600px;
     color: #dddddd; /* Texto ligeramente más tenue */
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
 }
+
 /* Hacer que los spans de colores en la descripción resalten más */
 .screen p span[style*="color:#c62828"] { color: #ff0000; font-weight: bold; text-shadow: 0 0 5px #ff0000;}
 .screen p span[style*="color:#2e7d32"] { color: #00ff00; font-weight: bold; text-shadow: 0 0 5px #00ff00;}
 .screen p span[style*="color:#0055cc"] { color: #0077ff; font-weight: bold; text-shadow: 0 0 5px #0077ff;}
 .screen p span[style*="color:#cc8800"] { color: #ffff00; font-weight: bold; text-shadow: 0 0 5px #ffff00;}
 
+/* Botones con efectos neón y destellos */
 .screen button {
-    padding: 1.875% 3.75%; /* 15px 30px relativo a 800px y 1600px */
-    font-size: 2vmin; /* Tamaño relativo a la ventana */
-    background: #000000; /* Fondo negro */
-    color: #00ff00; /* Texto Verde Neón */
-    border: 3px solid #00ff00; /* Borde Verde Neón */
-    box-shadow: 0 0 10px #00ff00, 0 0 5px #00ff00 inset;
-    border-radius: 8px; 
-    cursor: pointer; 
-    margin-top: 1.875%; /* 15px relativo a 800px */
-    transition: all 0.3s ease; /* Transición general */
+    background: linear-gradient(to bottom, #000000, #111111);
+    color: #00ff00;
+    border: 3px solid #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5), 0 0 5px rgba(0, 255, 0, 0.3) inset;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s ease;
     font-weight: bold;
-    font-family: 'Press Start 2P', 'Courier New', monospace; /* Asegurarse de que los botones mantienen la fuente */
+    position: relative;
+    overflow: hidden;
+    padding: 15px 30px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
 }
+
+.screen button::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(45deg);
+    animation: buttonGlow 3s infinite linear;
+}
+
+@keyframes buttonGlow {
+    0% { left: -200%; }
+    100% { left: 200%; }
+}
+
 .screen button:hover {
-    background: #00ff00; /* Fondo Verde Neón */
-    color: #000000; /* Texto negro */
-    box-shadow: 0 0 15px #00ff00, 0 0 25px #00ff00, 0 0 10px #ffffff inset;
+    background: #00ff00;
+    color: #000000;
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.8), 0 0 15px rgba(0, 255, 0, 0.5) inset;
+    transform: translateY(-3px);
 }
+
 .screen button:active {
-    transform: scale(0.95);
-    box-shadow: 0 0 5px #00ff00, 0 0 2px #00ff00 inset;
+    transform: translateY(1px);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), 0 0 3px rgba(0, 255, 0, 0.3) inset;
 }
 
-/* Estilos para el formulario de registro */
-.form-group {
-    margin-bottom: 1.875%; /* 15px relativo a 800px */
+/* Formulario de registro mejorado */
+.form-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    max-width: 20%; /* 320px relativo a 1600px */
+    max-width: 500px;
+    padding: 20px;
+    margin: 0 auto;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #00ffff;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5), 0 0 25px rgba(0, 255, 255, 0.3) inset;
+    animation: form-glow 3s infinite alternate;
 }
 
-.screen input {
-    font-size: 1.75vmin; /* Tamaño relativo a la ventana */
-    padding: 1.5% 1.875%; /* 12px 15px relativo a 800px y 1600px */
-    margin-bottom: 1.25%; /* 10px relativo a 800px */
-    border: 2px solid #00ffff; /* Borde Cyan */
-    background-color: #000000; /* Fondo negro */
-    color: #00ffff; /* Texto Cyan */
-    border-radius: 5px; 
-    width: 100%; 
-    text-align: center;
-    box-shadow: 0 0 5px #00ffff inset;
-    font-family: 'Press Start 2P', 'Courier New', monospace; /* Mismo estilo de fuente */
-}
-/* Estilo para el placeholder */
-.screen input::placeholder {
-    color: #007777; /* Cyan más oscuro */
-    opacity: 0.8;
-    font-size: 1.25vmin; /* Más pequeño para fuente Atari */
+@keyframes form-glow {
+    from { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5), 0 0 25px rgba(0, 255, 255, 0.3) inset; }
+    to { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8), 0 0 35px rgba(0, 255, 255, 0.5) inset; }
 }
 
-/* Checkbox de términos y condiciones */
+.form-group {
+    margin-bottom: 20px;
+    width: 100%;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    color: #00ffff;
+    margin-bottom: 8px;
+    font-size: 14px;
+    text-shadow: 0 0 5px #00ffff;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    color: #00ffff;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid #00ffff;
+    border-radius: 5px;
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.3) inset;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    border-color: #ff00ff;
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+}
+
+.form-group input::placeholder {
+    color: rgba(0, 255, 255, 0.5);
+    font-size: 12px;
+}
+/* Estilo mejorado para el checkbox */
 .checkbox-container {
     display: flex;
     align-items: center;
-    justify-content: center;
-    margin: 1.875% 0; /* 15px relativo a 800px */
+    margin: 15px 0;
 }
 
 .checkbox-container input[type="checkbox"] {
-    width: auto;
-    margin-right: 1.25%; /* 10px relativo a 800px */
-    transform: scale(1.2);
+    appearance: none;
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid #00ffff;
+    border-radius: 4px;
+    margin-right: 10px;
     cursor: pointer;
+    position: relative;
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+.checkbox-container input[type="checkbox"]:checked {
+    background-color: #00ffff;
+    box-shadow: 0 0 10px #00ffff;
+}
+
+.checkbox-container input[type="checkbox"]:checked::before {
+    content: "✓";
+    position: absolute;
+    top: 0;
+    left: 6px;
+    color: #000;
+    font-size: 16px;
+    font-weight: bold;
 }
 
 .checkbox-container label {
-    font-size: 1.5vmin; /* Tamaño relativo a la ventana */
+    font-size: 14px;
     cursor: pointer;
+    color: #fff;
 }
 
 .checkbox-container a {
     color: #00ffff;
     text-decoration: none;
     transition: all 0.2s;
+    position: relative;
+    margin-left: 4px;
 }
 
 .checkbox-container a:hover {
     text-shadow: 0 0 8px #00ffff;
-    text-decoration: underline;
+}
+
+.checkbox-container a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: #00ffff;
+    transition: width 0.3s;
+}
+
+.checkbox-container a:hover::after {
+    width: 100%;
+    box-shadow: 0 0 5px #00ffff;
+}
+
+/* Botón de registro mejorado */
+#registerButton {
+    background: linear-gradient(to right, #00cc00, #00ff00);
+    color: #000000;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: block;
+    margin: 25px auto 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
+}
+
+#registerButton::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: rotate(45deg);
+    transition: all 0.3s;
+}
+
+#registerButton:hover {
+    background: linear-gradient(to right, #00ff00, #00cc00);
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.9);
+    transform: scale(1.05);
+}
+
+#registerButton:hover::before {
+    left: 100%;
+}
+
+#registerButton:active {
+    transform: scale(0.98);
 }
 
 /* Modal de términos y condiciones */
@@ -289,11 +574,11 @@ body, html {
     position: relative;
     background-color: #0a0a0a;
     margin: 5% auto;
-    padding: 2.5%; /* 20px relativo a 800px */
+    padding: 20px;
     border: 2px solid #00ffff;
     box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
     width: 80%;
-    max-width: 50%; /* 800px relativo a 1600px */
+    max-width: 800px;
     max-height: 80vh;
     border-radius: 8px;
     overflow: hidden;
@@ -308,7 +593,7 @@ body, html {
 .close-btn {
     color: #00ffff;
     float: right;
-    font-size: 3.5vmin; /* Tamaño relativo a la ventana */
+    font-size: 28px;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
@@ -322,46 +607,46 @@ body, html {
 .modal-content h2 {
     color: #00ffff;
     text-align: center;
-    margin-bottom: 2.5%; /* 20px relativo a 800px */
-    font-size: 3vmin; /* Tamaño relativo a la ventana */
+    margin-bottom: 20px;
+    font-size: 24px;
     text-shadow: 0 0 5px #00ffff;
 }
 
 .modal-content h3 {
     color: #00ffff;
-    margin-top: 2.5%; /* 20px relativo a 800px */
-    margin-bottom: 1.25%; /* 10px relativo a 800px */
-    font-size: 2vmin; /* Tamaño relativo a la ventana */
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 16px;
 }
 
 .terms-content {
     max-height: 50vh;
     overflow-y: auto;
-    padding: 1.25%; /* 10px relativo a 800px */
-    margin-bottom: 2.5%; /* 20px relativo a 800px */
+    padding: 10px;
+    margin-bottom: 20px;
     border: 1px solid #333;
     background-color: rgba(0, 0, 0, 0.3);
 }
 
 .terms-content p {
     color: #cccccc;
-    font-size: 1.5vmin; /* Tamaño relativo a la ventana */
+    font-size: 12px;
     line-height: 1.8;
-    margin-bottom: 1.875%; /* 15px relativo a 800px */
+    margin-bottom: 15px;
 }
 
 #acceptTermsBtn {
     display: block;
     margin: 0 auto;
-    padding: 1.25% 2.5%; /* 10px 20px relativo a 800px y 1600px */
+    padding: 10px 20px;
     background: #000000;
     color: #00ff00;
     border: 2px solid #00ff00;
     border-radius: 5px;
-    font-size: 1.75vmin; /* Tamaño relativo a la ventana */
+    font-size: 14px;
     cursor: pointer;
     transition: all 0.3s;
-    font-family: 'Press Start 2P', 'Courier New', monospace;
+    font-family: 'Press Start 2P', monospace;
 }
 
 #acceptTermsBtn:hover {
@@ -369,30 +654,124 @@ body, html {
     color: #000000;
     box-shadow: 0 0 10px #00ff00;
 }
+/* Botón de ranking y ventana modal */
+.ranking-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #ffcc00;
+    border-radius: 5px;
+    padding: 10px 15px;
+    color: #ffcc00;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+    z-index: 25;
+}
 
-.floating-text {
-    position: absolute; 
-    font-size: 3vmin; /* Tamaño relativo a la ventana */
+.ranking-btn:hover {
+    background: rgba(255, 204, 0, 0.2);
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+    transform: scale(1.05);
+}
+
+.ranking-btn span {
+    display: inline-block;
+    position: relative;
+    z-index: 2;
+}
+
+/* Ventana modal para ver ranking desde el inicio */
+.ranking-modal {
+    display: none;
+    position: fixed;
+    z-index: 30;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+    animation: fadeIn 0.3s;
+}
+
+.ranking-modal-content {
+    position: relative;
+    background-color: #0a0a0a;
+    margin: 5% auto;
+    padding: 20px;
+    border: 2px solid #ffcc00;
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+    width: 80%;
+    max-width: 600px;
+    max-height: 80vh;
+    border-radius: 8px;
+    overflow: hidden;
+    animation: modalSlideIn 0.4s;
+}
+
+.ranking-modal h2 {
+    color: #ffcc00;
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
+    text-shadow: 0 0 5px #ffcc00;
+}
+
+.ranking-close-btn {
+    color: #ffcc00;
+    float: right;
+    font-size: 28px;
     font-weight: bold;
-    animation: float 1.2s forwards ease-out; 
-    z-index: 99; 
-    pointer-events: none;
-    /* Sombra definida por clase plus/minus */
-}
-@keyframes float {
-    0% { transform: translateY(0) scale(1); opacity: 1; }
-    100% { transform: translateY(-80px) scale(0.8); opacity: 0; }
-}
-.plus {
-    color: #00ff00; /* Verde Neón */
-    text-shadow: 0 0 5px #00ff00, 0 0 8px #ffffff;
-}
-.minus {
-    color: #ff0000; /* Rojo Neón */
-    text-shadow: 0 0 5px #ff0000, 0 0 8px #ffffff;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-/* Estilos para el Ranking (adaptados al tema neón) */
+.ranking-close-btn:hover {
+    color: #ffffff;
+    text-shadow: 0 0 10px #ffcc00;
+}
+
+/* Efectos para textos flotantes */
+.floating-text {
+    position: absolute;
+    font-size: 24px;
+    font-weight: bold;
+    animation: floatUpWithGlow 1.2s forwards ease-out;
+    z-index: 99;
+    pointer-events: none;
+    filter: drop-shadow(0 0 5px currentColor);
+}
+
+@keyframes floatUpWithGlow {
+    0% { 
+        transform: translateY(0) scale(1); 
+        opacity: 1;
+        filter: drop-shadow(0 0 5px currentColor);
+    }
+    50% {
+        filter: drop-shadow(0 0 10px currentColor);
+    }
+    100% { 
+        transform: translateY(-80px) scale(0.8); 
+        opacity: 0;
+        filter: drop-shadow(0 0 2px currentColor);
+    }
+}
+
+.plus {
+    color: #00ff00;
+    text-shadow: 0 0 8px #00ff00, 0 0 15px #ffffff;
+}
+
+.minus {
+    color: #ff0000;
+    text-shadow: 0 0 8px #ff0000, 0 0 15px #ffffff;
+}
+/* Efecto para la tabla de ranking */
 #ranking {
     margin-top: 2.5%; /* 20px relativo a 800px */
     font-size: 1.75vmin; /* Tamaño relativo a la ventana */
@@ -406,126 +785,125 @@ body, html {
     border-radius: 5px;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.1) inset;
 }
-#ranking h2 {
-    font-size: 2.25vmin; /* Tamaño relativo a la ventana */
-    margin-bottom: 1.25%; /* 10px relativo a 800px */
-    text-align: center;
-    color: #ffffff; /* Blanco */
-    text-shadow: 0 0 5px #ffffff;
+
+#ranking table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid #333;
+    animation: tableGlow 4s infinite alternate;
 }
-#ranking table { width: 100%; border-collapse: collapse; }
-#ranking th, #ranking td {
-    border: 1px solid #333; /* Borde gris muy oscuro */
-    padding: 1% 1.25%; /* 8px 10px relativo a 800px y 1600px */
-    text-align: left;
-    color: #cccccc; /* Texto gris claro */
-    font-size: 1.5vmin; /* Tamaño relativo a la ventana */
+
+@keyframes tableGlow {
+    from { box-shadow: 0 0 5px rgba(0, 255, 255, 0.3); }
+    to { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
 }
- #ranking th:first-child, #ranking td:first-child,
- #ranking th:last-child, #ranking td:last-child {
-    text-align: center;
-    width: 15%;
- }
- #ranking th:nth-child(2), #ranking td:nth-child(2) {
-    width: 70%;
- }
-#ranking th { /* Encabezados de tabla */
-    background-color: #1a1a1a; /* Gris muy oscuro */
-    color: #00ffff; /* Cyan */
-    text-shadow: 0 0 4px #00ffff;
-    position: sticky; 
-    top: 0; /* Mantiene los encabezados visibles al hacer scroll */
+
+#ranking th {
+    background-color: #1a1a1a;
+    color: #00ffff;
+    text-shadow: 0 0 5px #00ffff;
+    padding: 10px;
+    border: 1px solid #333;
+    position: sticky;
+    top: 0;
 }
- #ranking tr:nth-child(even) { /* Filas alternas */
-     background-color: rgba(30, 30, 30, 0.7); /* Gris oscuro translúcido */
- }
- #ranking tr:hover td { /* Efecto hover en filas */
+
+#ranking td {
+    padding: 8px 10px;
+    border: 1px solid #333;
+    color: #cccccc;
+    transition: all 0.3s;
+}
+
+#ranking tr:nth-child(even) {
+    background-color: rgba(30, 30, 30, 0.7);
+}
+
+#ranking tr:hover td {
     background-color: rgba(0, 255, 255, 0.1);
     color: #ffffff;
- }
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
 
-/* --- MEJORAS INTEGRADAS --- */
+/* Efectos para los primeros 3 puestos del ranking */
+#ranking tr:nth-child(1) td {
+    background-color: rgba(255, 215, 0, 0.2); /* Oro */
+    color: #ffd700;
+    text-shadow: 0 0 5px #ffd700;
+}
+
+#ranking tr:nth-child(2) td {
+    background-color: rgba(192, 192, 192, 0.2); /* Plata */
+    color: #c0c0c0;
+    text-shadow: 0 0 5px #c0c0c0;
+}
+
+#ranking tr:nth-child(3) td {
+    background-color: rgba(205, 127, 50, 0.2); /* Bronce */
+    color: #cd7f32;
+    text-shadow: 0 0 5px #cd7f32;
+}
 
 /* Efecto de sacudida de pantalla al choque */
 @keyframes shake {
-    0%   { transform: translate(0, 0); }
-    25%  { transform: translate(-15px, 0); }
-    50%  { transform: translate(15px, 0); }
-    75%  { transform: translate(-15px, 0); }
+    0% { transform: translate(0, 0); }
+    25% { transform: translate(-15px, 0); }
+    50% { transform: translate(15px, 0); }
+    75% { transform: translate(-15px, 0); }
     100% { transform: translate(0, 0); }
 }
 
-/* Clase para aplicar la animación de sacudida (se añade/quita con JS) */
+/* Clase para aplicar la animación de sacudida */
 .shake {
     animation: shake 0.3s;
 }
 
-/* Destello rojo en contenedor al recibir impacto (se añade/quita con JS) */
+/* Destello rojo en contenedor al recibir impacto */
 #gameContainer.hit {
-    /* La transición ya está definida en #gameContainer */
-    border-color: #ff0000 !important; /* Rojo Neón */
-    box-shadow: 0 0 15px rgba(255, 0, 0, 0.7),
-                0 0 5px rgba(255, 0, 0, 0.5) inset;
+    border-color: #ff0000 !important;
+    box-shadow: 0 0 25px rgba(255, 0, 0, 0.7),
+                0 0 15px rgba(255, 0, 0, 0.5) inset;
 }
 
-/* ------- OPTIMIZACIONES PARA DISPOSITIVOS MÓVILES ------- */
-
-/* Forzar orientación horizontal en móviles */
-@media screen and (orientation: portrait) {
-    body::before {
-        content: "Por favor, gira tu dispositivo para jugar";
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.9);
-        color: #00ffff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 5vw;
-        text-align: center;
-        z-index: 9999;
-        padding: 20px;
-        box-sizing: border-box;
-        font-family: 'Press Start 2P', 'Courier New', monospace;
-    }
+/* Controles de sonido */
+.sound-control {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid #00ffff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
 }
 
-/* Ajustes para tablets */
-@media screen and (max-width: 1024px) {
-    #gameContainer {
-        width: 100%;
-        height: 100vh;
-        border-radius: 0;
-        border: none;
-    }
-    
-    .screen h1 {
-        font-size: 5vmin;
-    }
-    
-    .screen p {
-        font-size: 2vmin;
-        max-width: 80%;
-    }
-    
-    .form-group {
-        max-width: 60%;
-    }
-    
-    .modal-content {
-        max-width: 80%;
-    }
+.sound-control:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
 }
 
-/* Ajustes para móviles en horizontal */
+.sound-icon {
+    font-size: 20px;
+    color: #00ffff;
+    text-shadow: 0 0 5px #00ffff;
+    font-style: normal;
+}
+
+/* Optimizaciones móviles */
 @media screen and (max-width: 768px) {
     #gameContainer {
-        aspect-ratio: auto;
+        width: 100vw;
         height: 100vh;
-        max-height: none;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: 0;
     }
     
     .screen h1 {
@@ -536,15 +914,18 @@ body, html {
     .screen p {
         font-size: 2.5vmin;
         line-height: 1.5;
+        max-width: 85%;
     }
     
     .form-group {
-        max-width: 80%;
+        width: 80%;
+        max-width: 300px;
     }
     
     .screen input {
         padding: 2vmin;
         font-size: 2.5vmin;
+        width: 100%;
     }
     
     .screen button {
@@ -552,51 +933,69 @@ body, html {
         font-size: 3vmin;
     }
     
-    .checkbox-container label {
-        font-size: 2.2vmin;
+    /* Botones más grandes para facilitar el toque */
+    button {
+        min-width: 150px;
+        min-height: 44px; /* Mínimo recomendado para elementos táctiles */
     }
     
-    #score, #timer, #combo {
-        font-size: 3vmin;
-        padding: 2vmin 3vmin;
+    /* Controles de juego específicos para móviles */
+    .mobile-controls {
+        display: flex;
+        position: absolute;
+        bottom: 20px;
+        left: 0;
+        right: 0;
+        justify-content: space-around;
+        z-index: 100;
     }
     
-    .obstacle, .coin {
-        border-width: 2px;
+    .mobile-control-button {
+        width: 80px;
+        height: 80px;
+        background: rgba(0, 255, 255, 0.3);
+        border: 2px solid #00ffff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 24px;
+        box-shadow: 0 0 10px #00ffff;
     }
 }
 
-/* Para dispositivos de pantalla pequeña */
-@media screen and (max-height: 500px) {
+/* Forzar orientación horizontal en móviles */
+@media screen and (orientation: portrait) and (max-width: 768px) {
+    #orientation-message {
+        display: flex !important;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        color: #00ffff;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        flex-direction: column;
+        text-align: center;
+        font-family: 'Press Start 2P', monospace;
+    }
+    
+    #orientation-message .rotate-icon {
+        font-size: 50px;
+        margin: 20px;
+        animation: rotate 2s infinite linear;
+    }
+    
     #gameContainer {
-        height: 100vh;
+        display: none;
     }
     
-    .screen h1 {
-        margin-bottom: 1vmin;
-        font-size: 5vmin;
-    }
-    
-    .form-group {
-        margin-bottom: 1vmin;
-    }
-    
-    .screen input {
-        margin-bottom: 1vmin;
-    }
-    
-    #ranking {
-        max-height: 60vh;
-    }
-}
-
-/* Soporte específico para iPhone */
-@supports (-webkit-touch-callout: none) {
-    #gameContainer {
-        height: -webkit-fill-available;
-    }
-    
-    body, html {
-        height: -webkit-fill-available;
+    @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(90deg); }
     }
 }
