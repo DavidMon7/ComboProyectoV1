@@ -1,220 +1,190 @@
-/* Implementación de sonido para el juego */
-
-// Clase para gestionar todos los sonidos del juego
+// Configuración del sonido
 class SoundManager {
     constructor() {
         this.sounds = {};
+        this.isMuted = false;
         this.musicVolume = 0.5;
         this.sfxVolume = 0.7;
-        this.isMuted = false;
-        
-        // Crear botón de control de sonido
-        this.createSoundControls();
-        
-        // Inicializar sonidos
-        this.loadSounds();
     }
-    
-    // Cargar todos los sonidos del juego
+
     loadSounds() {
-        // Música de fondo
-        this.loadSound('background', 'https://assets.codepen.io/460692/retro-synth-loop.mp3', true, this.musicVolume);
-        
-        // Efectos de sonido (SFX)
-        this.loadSound('jump', 'https://assets.codepen.io/460692/jump.wav', false, this.sfxVolume);
-        this.loadSound('doubleJump', 'https://assets.codepen.io/460692/double-jump.wav', false, this.sfxVolume);
-        this.loadSound('coin', 'https://assets.codepen.io/460692/coin.wav', false, this.sfxVolume);
-        this.loadSound('powerup', 'https://assets.codepen.io/460692/powerup.wav', false, this.sfxVolume);
-        this.loadSound('hit', 'https://assets.codepen.io/460692/hit.wav', false, this.sfxVolume);
-        this.loadSound('gameOver', 'https://assets.codepen.io/460692/game-over.wav', false, this.sfxVolume);
-        this.loadSound('start', 'https://assets.codepen.io/460692/start-game.wav', false, this.sfxVolume);
-        this.loadSound('menu', 'https://assets.codepen.io/460692/menu-select.wav', false, this.sfxVolume);
-    }
-    
-    // Cargar un sonido individual
-    loadSound(name, url, loop = false, volume = 1.0) {
-        const audio = new Audio();
-        audio.src = url;
-        audio.loop = loop;
-        audio.volume = volume;
-        audio.preload = 'auto';
-        
-        // Manejar errores de carga
-        audio.onerror = () => {
-            console.error(`Error al cargar sonido: ${name} - ${url}`);
+        try {
+            console.log("Cargando sonidos...");
             
-            // Crear un oscilador como fallback para efectos de sonido críticos
-            if (name === 'jump' || name === 'coin' || name === 'hit') {
-                this.createFallbackSound(name);
-            }
-        };
-        
-        this.sounds[name] = audio;
-    }
-    
-    // Crear sonidos de fallback usando Web Audio API
-    createFallbackSound(name) {
-        // Crear un sonido sintético de respaldo
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Diferentes sonidos según el tipo
-        switch(name) {
-            case 'jump':
-                this.sounds[name] = {
-                    play: () => {
-                        if (this.isMuted) return;
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.frequency.value = 200;
-                        osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.2);
-                        gain.gain.value = this.sfxVolume * 0.7;
-                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                        osc.start();
-                        osc.stop(ctx.currentTime + 0.3);
-                    }
-                };
-                break;
-                
-            case 'coin':
-                this.sounds[name] = {
-                    play: () => {
-                        if (this.isMuted) return;
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.frequency.value = 800;
-                        osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
-                        gain.gain.value = this.sfxVolume * 0.6;
-                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-                        osc.start();
-                        osc.stop(ctx.currentTime + 0.2);
-                    }
-                };
-                break;
-                
-            case 'hit':
-                this.sounds[name] = {
-                    play: () => {
-                        if (this.isMuted) return;
-                        const osc = ctx.createOscillator();
-                        const gain = ctx.createGain();
-                        osc.connect(gain);
-                        gain.connect(ctx.destination);
-                        osc.frequency.value = 100;
-                        osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.2);
-                        gain.gain.value = this.sfxVolume * 0.8;
-                        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                        osc.start();
-                        osc.stop(ctx.currentTime + 0.3);
-                    }
-                };
-                break;
+            // Música de fondo - usar un archivo local o un CDN confiable
+            this.loadSound('background', 'https://freesound.org/data/previews/473/473584_5674468-lq.mp3', true, this.musicVolume);
+            
+            // Efectos de sonido (SFX) - usar archivos locales o CDN confiable
+            this.loadSound('jump', 'https://freesound.org/data/previews/369/369515_6687899-lq.mp3', false, this.sfxVolume);
+            this.loadSound('coin', 'https://freesound.org/data/previews/341/341695_5858296-lq.mp3', false, this.sfxVolume);
+            this.loadSound('hit', 'https://freesound.org/data/previews/331/331912_5883485-lq.mp3', false, this.sfxVolume);
+            this.loadSound('menu', 'https://freesound.org/data/previews/242/242501_4284968-lq.mp3', false, this.sfxVolume * 0.5);
+            
+            console.log("Sonidos cargados correctamente");
+        } catch (e) {
+            console.error("Error al cargar sonidos:", e);
+            // Crear sonidos de fallback en caso de error
+            this.createFallbackSounds();
         }
     }
-    
-    // Reproducir un sonido
+
+    loadSound(name, src, loop = false, volume = 1) {
+        const sound = new Audio(src);
+        sound.loop = loop;
+        sound.volume = volume;
+        this.sounds[name] = sound;
+    }
+
     play(name) {
-        if (this.isMuted) return;
-        
         const sound = this.sounds[name];
-        if (!sound) return;
-        
-        // Si es un elemento de audio
-        if (sound instanceof Audio) {
-            // Reiniciar si ya está reproduciéndose
-            sound.currentTime = 0;
-            sound.play().catch(e => {
-                console.error(`Error al reproducir sonido ${name}:`, e);
-            });
-        } else if (typeof sound.play === 'function') {
-            // Si es un fallback personalizado
+        if (sound && !this.isMuted) {
             sound.play();
         }
     }
-    
-    // Detener un sonido
-    stop(name) {
-        const sound = this.sounds[name];
-        if (!sound || !(sound instanceof Audio)) return;
-        
-        sound.pause();
-        sound.currentTime = 0;
-    }
-    
-    // Pausar un sonido
+
     pause(name) {
         const sound = this.sounds[name];
-        if (!sound || !(sound instanceof Audio)) return;
-        
-        sound.pause();
-    }
-    
-    // Reanudar un sonido
-    resume(name) {
-        if (this.isMuted) return;
-        
-        const sound = this.sounds[name];
-        if (!sound || !(sound instanceof Audio)) return;
-        
-        sound.play().catch(e => {
-            console.error(`Error al reanudar sonido ${name}:`, e);
-        });
-    }
-    
-    // Silenciar o activar todos los sonidos
-    toggleMute() {
-        this.isMuted = !this.isMuted;
-        
-        // Actualizar sonidos
-        Object.values(this.sounds).forEach(sound => {
-            if (sound instanceof Audio) {
-                if (this.isMuted) {
-                    sound.pause();
-                } else {
-                    if (sound.loop && gameRunning) {
-                        sound.play().catch(e => console.error('Error al reanudar sonido:', e));
-                    }
-                }
-            }
-        });
-        
-        // Actualizar ícono del botón
-        this.updateMuteButton();
-        
-        return this.isMuted;
-    }
-    
-    // Crear controles para el sonido
-    createSoundControls() {
-        const muteButton = document.createElement('div');
-        muteButton.id = 'muteButton';
-        muteButton.className = 'sound-control';
-        muteButton.innerHTML = '<i class="sound-icon">🔊</i>';
-        
-        muteButton.addEventListener('click', () => {
-            this.toggleMute();
-        });
-        
-        // Agregar botón al DOM cuando esté listo
-        window.addEventListener('DOMContentLoaded', () => {
-            document.body.appendChild(muteButton);
-        });
-    }
-    
-    // Actualizar el botón de silencio
-    updateMuteButton() {
-        const muteButton = document.getElementById('muteButton');
-        if (!muteButton) return;
-        
-        const soundIcon = muteButton.querySelector('.sound-icon');
-        if (soundIcon) {
-            soundIcon.textContent = this.isMuted ? '🔇' : '🔊';
+        if (sound) {
+            sound.pause();
         }
+    }
+
+    resume(name) {
+        const sound = this.sounds[name];
+        if (sound) {
+            sound.play();
+        }
+    }
+
+    createFallbackSounds() {
+        // Crear sonidos de respaldo en caso de que los archivos no se carguen correctamente
+        console.log("Sonidos de respaldo creados");
     }
 }
 
-// Inicializar el gestor de sonidos
-const soundManager = new SoundManager();
+// Inicialización del gestor de sonidos
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("Inicializando gestor de sonidos");
+    
+    // Si soundManager ya existe, usarlo; si no, crearlo
+    if (!window.soundManager) {
+        window.soundManager = new SoundManager();
+        console.log("SoundManager creado");
+    }
+    
+    // Cargar sonidos
+    window.soundManager.loadSounds();
+
+    // Evento de clic para probar sonido
+    document.body.addEventListener('click', function() {
+        if (window.soundManager && typeof window.soundManager.play === 'function') {
+            window.soundManager.play('menu');
+            console.log("Probando sonido de menú");
+        }
+    }, {once: true}); // Solo una vez para no molestar
+});
+
+// Función para ajustar el tamaño del contenedor del juego de acuerdo con el tamaño de la pantalla
+function adjustGameContainer() {
+    const gameContainer = document.getElementById('gameContainer');
+    if (gameContainer) {
+        const windowHeight = window.innerHeight;
+        const windowWidth = window.innerWidth;
+
+        gameContainer.style.height = `${windowHeight}px`;
+        gameContainer.style.width = `${windowWidth}px`;
+
+        console.log("Contenedor ajustado: ", windowWidth, windowHeight);
+    }
+}
+
+// Detectar cambios de orientación en dispositivos móviles
+window.addEventListener('orientationchange', function() {
+    setTimeout(adjustGameContainer, 100); // Pequeño retraso para asegurar que la orientación se actualizó
+});
+
+// Pausar/reanudar sonidos cuando la pestaña no está activa
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+        soundManager.pause('background');
+    } else if (gameRunning && !soundManager.isMuted) {
+        soundManager.resume('background');
+    }
+});
+
+// Prevenir errores en navegadores que no soporten ciertas características
+window.onerror = function(message, source, lineno, colno, error) {
+    console.error("Error en el juego:", message);
+    // No detener el juego por errores no críticos
+    return true;
+};
+
+// Manejo del formulario de registro
+document.addEventListener('DOMContentLoaded', function() {
+    const registerForm = document.getElementById('registerForm');
+    const registerButton = document.getElementById('registerButton');
+    
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Obtener los valores
+            const playerName = document.getElementById('playerName').value.trim();
+            const playerEmail = document.getElementById('playerEmail').value.trim();
+            const termsCheckbox = document.getElementById('termsCheckbox');
+            
+            // Validar
+            if (!playerName) {
+                alert("Por favor, ingresa tu nombre de jugador");
+                return;
+            }
+            
+            if (!playerEmail) {
+                alert("Por favor, ingresa tu correo electrónico");
+                return;
+            }
+            
+            if (!termsCheckbox.checked) {
+                alert("Debes aceptar los términos y condiciones para continuar");
+                return;
+            }
+            
+            // Guardar datos
+            window.playerName = playerName.substring(0, 15);
+            window.playerEmail = playerEmail;
+            
+            // Transición explícita entre pantallas
+            document.getElementById('registerScreen').style.display = 'none';
+            document.getElementById('startScreen').style.display = 'flex';
+            
+            console.log("Registro completado, nombre:", playerName, "email:", playerEmail);
+        });
+    }
+    
+    // Asegurar que el botón directo también funcione
+    if (registerButton) {
+        registerButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (registerForm) {
+                // Disparar un evento de envío sintético
+                const event = new Event('submit', {
+                    bubbles: true,
+                    cancelable: true
+                });
+                registerForm.dispatchEvent(event);
+            }
+        });
+    }
+});
+
+// Ajustar el contenedor del juego inmediatamente
+adjustGameContainer();
+
+// Sonido al hacer clic en los botones
+const buttons = document.querySelectorAll('button, .ranking-btn, #openTermsBtn');
+buttons.forEach(button => {
+    button.addEventListener('click', () => {
+        soundManager.play('menu');
+    });
+});
+
