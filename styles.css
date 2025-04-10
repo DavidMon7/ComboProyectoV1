@@ -1,223 +1,218 @@
-/* General */
-
-body, html {
+body {
+    font-family: 'Press Start 2P', cursive;
     margin: 0;
     padding: 0;
-    height: 100%;
-    font-family: 'Press Start 2P', cursive; /* Fuente retro de estilo Atari */
-    background-color: #f0f0f0;
-    overflow: hidden; /* Evitar el desplazamiento no deseado */
-}
-
-/* Contenedor principal del juego */
-#gameContainer {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex-direction: column;
-    height: 100vh; /* Para que ocupe toda la pantalla */
-    width: 100%;
+    min-height: 100vh;
+    background-color: #111;
+    color: #eee;
     overflow: hidden;
-    padding: 10px;
-    box-sizing: border-box;
 }
 
-/* Pantalla de registro y otras pantallas */
+#gameContainer {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    background-color: #222;
+    overflow: hidden;
+    border: 4px solid #555;
+}
+
+#player {
+    position: absolute;
+    bottom: 20px;
+    left: 50px;
+    width: 40px;
+    height: 40px;
+    background-color: #007bff;
+    border-radius: 5px;
+}
+
+.obstacle {
+    position: absolute;
+    bottom: 0;
+    width: 30px;
+    background-color: #c62828;
+}
+
+.coin {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+}
+
+.coin.green { background-color: #2e7d32; }
+.coin.blue { background-color: #0055cc; }
+.coin.yellow { background-color: #cc8800; }
+
+#score, #timer, #combo {
+    position: absolute;
+    font-size: 1.5em;
+    padding: 10px;
+}
+
+#score { top: 10px; left: 10px; }
+#timer { top: 10px; right: 10px; }
+#combo { top: 50px; left: 10px; }
+
 .screen {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
     text-align: center;
+}
+
+.form-container {
+    display: flex;
     flex-direction: column;
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
+    align-items: center;
 }
 
-h1 {
-    font-size: 2em;
+.form-group {
     margin-bottom: 15px;
-    color: #007bff;
+    width: 100%;
 }
 
-/* Estilo de los botones */
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="email"], input[type="text"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    border: 1px solid #555;
+    background-color: #333;
+    color: #eee;
+    border-radius: 5px;
+}
+
 button {
     padding: 10px 20px;
-    background-color: #28a745;
+    background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 16px;
-    margin-top: 15px;
+    font-family: 'Press Start 2P', cursive;
 }
 
-button:focus {
-    outline: none;
-}
-
-/* Pantalla de registro */
-#registerForm input {
-    margin-bottom: 10px;
-    padding: 10px;
-    width: 80%; /* Ajustar el tamaño */
-    max-width: 300px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-#registerForm .checkbox-container {
-    margin-bottom: 15px;
-}
-
-#registerForm button {
-    width: 80%; /* Ajustar el tamaño del botón */
-    max-width: 300px;
-}
-
-/* Pantalla de ranking */
-#rankingDisplay {
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-#ranking {
-    margin-top: 15px;
-}
-
-/* Modal de términos */
 .modal {
-    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 80%;
-    width: 400px;
-}
-
-/* Mensaje de orientación en móviles */
-#orientation-message {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 20px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    border-radius: 10px;
-    text-align: center;
-}
-
-.rotate-icon {
-    font-size: 50px;
-}
-
-/* Media Queries para móviles */
-@media screen and (max-width: 600px) {
-    h1 {
-        font-size: 1.5em;
-    }
-
-    /* Ajustar tamaño de inputs y botones en dispositivos móviles */
-    #registerForm input, #registerForm button {
-        width: 90%; /* Aumentar el tamaño relativo */
-        max-width: none;
-    }
-
-    #gameContainer {
-        padding: 10px;
-    }
-
-    #startButton {
-        width: 80%;
-    }
-
-    /* Instrucciones móviles */
-    .mobile-instructions {
-        display: block;
-    }
-
-    /* Mostrar el mensaje de orientación solo en dispositivos móviles */
-    #orientation-message {
-        display: block;
-    }
-}
-
-/* Media Queries para tablets (de 601px a 1024px) */
-@media screen and (min-width: 601px) and (max-width: 1024px) {
-    h1 {
-        font-size: 1.8em;
-    }
-
-    #gameContainer {
-        padding: 20px;
-    }
-
-    #startButton {
-        width: 70%;
-    }
-}
-
-/* Botón de ranking */
-#rankingButton {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #007bff;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 50px;
-    font-size: 14px;
-    cursor: pointer;
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-#rankingButton:hover {
-    background-color: #0056b3;
+.modal-content {
+    background-color: #222;
+    padding: 20px;
+    border-radius: 10px;
+    position: relative;
 }
 
-/* Modal para mostrar ranking */
-#rankingModal {
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 1.5em;
+    cursor: pointer;
+}
+
+.ranking-btn {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.ranking-modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: none;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
     justify-content: center;
     align-items: center;
 }
 
-#rankingModalContent {
-    background-color: white;
+.ranking-modal-content {
+    background-color: #222;
     padding: 20px;
     border-radius: 10px;
-    max-width: 90%;
-    overflow-y: auto;
+    position: relative;
 }
 
-/* Botón de cierre del ranking */
 .ranking-close-btn {
     position: absolute;
     top: 10px;
     right: 10px;
-    font-size: 20px;
+    font-size: 1.5em;
     cursor: pointer;
+}
+
+#orientation-message {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.rotate-icon {
+    font-size: 3em;
+    margin-top: 20px;
+}
+
+/* Estilos adicionales para mejorar la apariencia */
+.player-jump {
+    animation: jump 0.5s ease-out;
+}
+
+@keyframes jump {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-100px); }
+    100% { transform: translateY(0); }
+}
+
+.obstacle-animation {
+    animation: obstacleMove 5s linear infinite;
+}
+
+@keyframes obstacleMove {
+    0% { transform: translateX(800px); }
+    100% { transform: translateX(-50px); }
+}
+
+.coin-animation {
+    animation: coinFloat 2s ease-in-out infinite;
+}
+
+@keyframes coinFloat {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
 }
