@@ -14,30 +14,6 @@
     
     <!-- Estilos -->
     <link rel="stylesheet" href="styles.css">
-    
-    <!-- Corrección de bugs específicos -->
-    <style>
-        /* Forzar visibilidad de obstáculos */
-        .obstacle {
-            visibility: visible !important;
-            display: block !important;
-            opacity: 1 !important;
-            background: rgba(255, 0, 255, 0.3) !important;
-            border: 4px solid #ff00ff !important;
-            box-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff inset !important;
-        }
-        
-        /* Ajustes para impedir zoom no deseado en móviles */
-        @media screen and (max-width: 1024px) {
-            body {
-                touch-action: pan-x pan-y;
-                -webkit-overflow-scrolling: touch;
-            }
-            #gameContainer {
-                touch-action: none;
-            }
-        }
-    </style>
 </head>
 <body>
     <div id="gameContainer">
@@ -50,18 +26,20 @@
         <div id="registerScreen" class="screen">
             <h1>¡Cuadrado Saltarín Combo!</h1>
             <p>Regístrate para jugar y aparecer en el ranking</p>
-            <form id="registerForm">
+            <form id="registerForm" class="form-container">
                 <div class="form-group">
-                    <input id="playerEmail" type="email" placeholder="Tu correo electrónico" required autocomplete="email">
+                    <label for="playerEmail">Correo Electrónico</label>
+                    <input id="playerEmail" type="email" placeholder="Ingresa tu correo electrónico" required autocomplete="email">
                 </div>
                 <div class="form-group">
-                    <input id="playerName" type="text" placeholder="Tu nombre (Max 15)" maxlength="15" required autocomplete="nickname">
+                    <label for="playerName">Nombre de Jugador</label>
+                    <input id="playerName" type="text" placeholder="Elige un nombre (Máx 15 caracteres)" maxlength="15" required autocomplete="nickname">
                 </div>
                 <div class="form-group checkbox-container">
                     <input type="checkbox" id="termsCheckbox" required>
                     <label for="termsCheckbox">Acepto los <a href="#" id="openTermsBtn">términos y condiciones</a></label>
                 </div>
-                <button type="submit" id="registerButton">REGISTRARME</button>
+                <button type="submit" id="registerButton">Registrarme</button>
             </form>
         </div>
 
@@ -115,24 +93,30 @@
         </div>
     </div>
 
+    <!-- Botón de ranking siempre visible -->
+    <div id="rankingButton" class="ranking-btn">
+        <span>VER RANKING</span>
+    </div>
+    
+    <!-- Modal para mostrar ranking -->
+    <div id="rankingModal" class="ranking-modal">
+        <div class="ranking-modal-content" id="rankingModalContent">
+            <span class="ranking-close-btn">&times;</span>
+            <h2>Ranking de Jugadores</h2>
+            <p>Cargando ranking...</p>
+        </div>
+    </div>
+    
     <!-- Detector de orientación para móviles -->
-    <div id="orientation-message" style="display: none;">
+    <div id="orientation-message">
         <div>
             <p>Por favor, gira tu dispositivo para jugar</p>
             <div class="rotate-icon">⟳</div>
         </div>
     </div>
-
+    
     <!-- Scripts -->
     <script src="script.js"></script>
-    
-    <!-- Script para detectar dispositivo móvil y mostrar instrucciones adecuadas -->
-    <script>
-        // Detectar si es dispositivo móvil
-        if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-            // Es dispositivo móvil, mostrar instrucciones táctiles
-            document.querySelector('.mobile-instructions').style.display = 'block';
-        }
-    </script>
+    <script src="sound-manager.js"></script>
 </body>
 </html>
