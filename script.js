@@ -304,6 +304,17 @@ document.addEventListener('DOMContentLoaded', () => {
         rankingModal.style.display = 'none';
     });
 
+const closeRankingBtn = document.getElementById('closeRankingBtn');
+if (closeRankingBtn) {
+    closeRankingBtn.addEventListener('click', () => {
+        const rankingModal = document.getElementById('rankingModal');
+        if (rankingModal) {
+            rankingModal.style.display = 'none';
+            soundManager.play('menu');
+        }
+    });
+}
+
     // Inicialización
     if (playerName) {
         registerScreen.style.display = 'none';
