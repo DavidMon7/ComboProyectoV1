@@ -1,218 +1,691 @@
-body {
-    font-family: 'Press Start 2P', cursive;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    justify-content: center;
+/* --- ESTILOS GENERALES --- */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+    /* Colores principales - Paleta neón */
+    --color-bg: #000000;
+    --color-grid: rgba(255, 255, 255, 0.08);
+    --color-primary: #00ffff; /* Cyan neón */
+    --color-secondary: #ff00ff; /* Magenta neón */
+    --color-accent: #ffff00; /* Amarillo neón */
+    --color-success: #00ff00; /* Verde neón */
+    --color-danger: #ff0000; /* Rojo neón */
+    --color-text: #ffffff;
+    
+    /* Sombras y brillos */
+    --glow-primary: 0 0 15px rgba(0, 255, 255, 0.7);
+    --glow-secondary: 0 0 15px rgba(255, 0, 255, 0.7);
+    --glow-accent: 0 0 15px rgba(255, 255, 0, 0.7);
+    --glow-success: 0 0 15px rgba(0, 255, 0, 0.7);
+    --glow-danger: 0 0 15px rgba(255, 0, 0, 0.7);
+}
+
+body, html {
+    margin: 0; 
+    padding: 0; 
+    width: 100%; 
+    height: 100%;
+    overflow: hidden; 
+    display: flex; 
+    justify-content: center; 
     align-items: center;
-    min-height: 100vh;
-    background-color: #111;
-    color: #eee;
-    overflow: hidden;
+    background: var(--color-bg);
+    font-family: 'Press Start 2P', monospace;
+    color: var(--color-text);
 }
 
+/* --- CONTENEDOR DEL JUEGO --- */
 #gameContainer {
-    position: relative;
-    width: 800px;
-    height: 600px;
-    background-color: #222;
+    width: 100%;
+    height: 100vh;
+    max-width: 1600px;
+    max-height: 800px;
+    aspect-ratio: 2 / 1; /* Mantiene la proporción 2:1 */
+    position: relative; 
     overflow: hidden;
-    border: 4px solid #555;
+    /* Fondo con cuadrícula */
+    background-color: var(--color-bg);
+    background-image: 
+        linear-gradient(var(--color-grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--color-grid) 1px, transparent 1px);
+    background-size: 40px 40px;
+    /* Borde neón */
+    border: 3px solid var(--color-primary);
+    box-shadow: 
+        var(--glow-primary),
+        0 0 25px rgba(0, 255, 255, 0.3) inset,
+        0 0 5px rgba(0, 255, 255, 0.5);
+    /* Animación de fondo */
+    animation: gridMove 15s linear infinite;
 }
 
-#player {
+/* Efecto de "escaneo" que atraviesa la pantalla */
+#gameContainer::after {
+    content: '';
     position: absolute;
-    bottom: 20px;
-    left: 50px;
-    width: 40px;
-    height: 40px;
-    background-color: #007bff;
-    border-radius: 5px;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(0, 255, 255, 0.05) 45%,
+        rgba(0, 255, 255, 0.1) 50%,
+        rgba(0, 255, 255, 0.05) 55%,
+        transparent 100%
+    );
+    animation: scanLine 6s linear infinite;
+    pointer-events: none; /* Permitir clicks a través */
+    z-index: 1;
 }
 
-.obstacle {
-    position: absolute;
-    bottom: 0;
-    width: 30px;
-    background-color: #c62828;
+@keyframes gridMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
 }
 
-.coin {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
+@keyframes scanLine {
+    0% { left: -150%; }
+    100% { left: 150%; }
 }
 
-.coin.green { background-color: #2e7d32; }
-.coin.blue { background-color: #0055cc; }
-.coin.yellow { background-color: #cc8800; }
-
-#score, #timer, #combo {
-    position: absolute;
-    font-size: 1.5em;
-    padding: 10px;
-}
-
-#score { top: 10px; left: 10px; }
-#timer { top: 10px; right: 10px; }
-#combo { top: 50px; left: 10px; }
-
+/* --- PANTALLAS (REGISTRO, INICIO, RANKING) --- */
 .screen {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.8);
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
+    z-index: 20; 
+    text-align: center; 
     padding: 20px;
-    border-radius: 10px;
-    text-align: center;
+    box-sizing: border-box;
 }
 
+.screen h1 {
+    font-size: 36px;
+    margin-bottom: 30px;
+    color: var(--color-primary);
+    text-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary);
+    animation: titlePulse 2s infinite alternate;
+    letter-spacing: 2px;
+}
+
+@keyframes titlePulse {
+    from { text-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary); }
+    to { text-shadow: 0 0 15px var(--color-primary), 0 0 25px var(--color-primary), 0 0 35px var(--color-primary); }
+}
+
+.screen p {
+    font-size: 14px;
+    margin-bottom: 25px; 
+    line-height: 1.8; 
+    max-width: 600px;
+    color: #dddddd;
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+}
+
+/* Estilo para los textos de colores */
+.screen p span[style*="color:#c62828"] { color: var(--color-danger); font-weight: bold; text-shadow: 0 0 5px var(--color-danger); }
+.screen p span[style*="color:#2e7d32"] { color: var(--color-success); font-weight: bold; text-shadow: 0 0 5px var(--color-success); }
+.screen p span[style*="color:#0055cc"] { color: var(--color-primary); font-weight: bold; text-shadow: 0 0 5px var(--color-primary); }
+.screen p span[style*="color:#cc8800"] { color: var(--color-accent); font-weight: bold; text-shadow: 0 0 5px var(--color-accent); }
+
+/* --- FORMULARIO DE REGISTRO --- */
 .form-container {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 100%;
+    max-width: 500px;
+    padding: 30px;
+    margin: 0 auto;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--color-primary);
+    border-radius: 10px;
+    box-shadow: var(--glow-primary), 0 0 25px rgba(0, 255, 255, 0.3) inset;
+    animation: form-glow 3s infinite alternate;
+}
+
+@keyframes form-glow {
+    from { box-shadow: var(--glow-primary), 0 0 25px rgba(0, 255, 255, 0.3) inset; }
+    to { box-shadow: 0 0 25px rgba(0, 255, 255, 0.8), 0 0 35px rgba(0, 255, 255, 0.5) inset; }
 }
 
 .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     width: 100%;
-}
-
-label {
-    display: block;
-    margin-bottom: 5px;
-}
-
-input[type="email"], input[type="text"] {
-    width: calc(100% - 22px);
-    padding: 10px;
-    border: 1px solid #555;
-    background-color: #333;
-    color: #eee;
-    border-radius: 5px;
-}
-
-button {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'Press Start 2P', cursive;
-}
-
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background-color: #222;
-    padding: 20px;
-    border-radius: 10px;
     position: relative;
 }
 
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 1.5em;
-    cursor: pointer;
+.form-group label {
+    display: block;
+    color: var(--color-primary);
+    margin-bottom: 8px;
+    font-size: 14px;
+    text-shadow: 0 0 5px var(--color-primary);
 }
 
-.ranking-btn {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    background-color: #007bff;
-    color: white;
-    padding: 10px 20px;
+.form-group input[type="text"],
+.form-group input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    color: var(--color-primary);
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--color-primary);
     border-radius: 5px;
+    outline: none;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.3) inset;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+    border-color: var(--color-secondary);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.5);
+}
+
+.form-group input::placeholder {
+    color: rgba(0, 255, 255, 0.5);
+    font-size: 12px;
+}
+
+/* Estilo mejorado para el checkbox */
+.checkbox-container {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.checkbox-container input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border: 2px solid var(--color-primary);
+    border-radius: 4px;
+    margin-right: 10px;
     cursor: pointer;
+    position: relative;
+    box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+.checkbox-container input[type="checkbox"]:checked {
+    background-color: var(--color-primary);
+    box-shadow: 0 0 10px var(--color-primary);
+}
+
+.checkbox-container input[type="checkbox"]:checked::before {
+    content: "✓";
+    position: absolute;
+    top: 0;
+    left: 6px;
+    color: #000;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.checkbox-container label {
+    font-size: 14px;
+    cursor: pointer;
+    color: #fff;
+}
+
+.checkbox-container a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: all 0.2s;
+    position: relative;
+    margin-left: 4px;
+}
+
+.checkbox-container a:hover {
+    text-shadow: 0 0 8px var(--color-primary);
+}
+
+.checkbox-container a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--color-primary);
+    transition: width 0.3s;
+}
+
+.checkbox-container a:hover::after {
+    width: 100%;
+    box-shadow: 0 0 5px var(--color-primary);
+}
+
+/* --- BOTONES --- */
+.screen button,
+#registerButton {
+    background: linear-gradient(to bottom, #000000, #111111);
+    color: var(--color-success);
+    border: 3px solid var(--color-success);
+    box-shadow: var(--glow-success), 0 0 5px rgba(0, 255, 0, 0.3) inset;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    position: relative;
+    overflow: hidden;
+    padding: 15px 30px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    min-width: 200px;
+}
+
+.screen button::before,
+#registerButton::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(45deg);
+    animation: buttonGlow 3s infinite linear;
+}
+
+@keyframes buttonGlow {
+    0% { left: -200%; }
+    100% { left: 200%; }
+}
+
+.screen button:hover,
+#registerButton:hover {
+    background: var(--color-success);
+    color: #000000;
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.8), 0 0 15px rgba(0, 255, 0, 0.5) inset;
+    transform: translateY(-3px);
+}
+
+.screen button:active,
+#registerButton:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), 0 0 3px rgba(0, 255, 0, 0.3) inset;
+}
+
+/* --- RANKING BUTTON Y MODAL --- */
+#rankingButton {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--color-accent);
+    border-radius: 5px;
+    padding: 10px 15px;
+    color: var(--color-accent);
+    font-family: 'Press Start 2P', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
+    z-index: 25;
+}
+
+#rankingButton:hover {
+    background: rgba(255, 204, 0, 0.2);
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+    transform: scale(1.05);
 }
 
 .ranking-modal {
+    display: none;
     position: fixed;
-    top: 0;
+    z-index: 30;
     left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.9);
+    animation: fadeIn 0.3s;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
 }
 
 .ranking-modal-content {
-    background-color: #222;
-    padding: 20px;
-    border-radius: 10px;
     position: relative;
+    background-color: #0a0a0a;
+    margin: 5% auto;
+    padding: 20px;
+    border: 2px solid var(--color-accent);
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+    width: 80%;
+    max-width: 600px;
+    max-height: 80vh;
+    border-radius: 8px;
+    overflow: hidden;
+    animation: modalSlideIn 0.4s;
 }
 
+@keyframes modalSlideIn {
+    from {transform: translateY(-50px); opacity: 0;}
+    to {transform: translateY(0); opacity: 1;}
+}
+
+/* Botón para cerrar ranking */
 .ranking-close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 1.5em;
+    color: var(--color-accent);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
+.ranking-close-btn:hover {
+    color: #ffffff;
+    text-shadow: 0 0 10px var(--color-accent);
+}
+
+/* Botón adicional para cerrar ranking */
+#closeRankingBtn {
+    background: linear-gradient(to bottom, #000000, #111111);
+    color: var(--color-accent);
+    border: 3px solid var(--color-accent);
+    box-shadow: 0 0 10px rgba(255, 204, 0, 0.5), 0 0 5px rgba(255, 204, 0, 0.3) inset;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    padding: 10px 20px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    display: block;
+    margin: 15px auto 0 auto;
+}
+
+#closeRankingBtn:hover {
+    background: var(--color-accent);
+    color: #000000;
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.8), 0 0 10px rgba(255, 204, 0, 0.5) inset;
+}
+
+#ranking {
+    margin-top: 20px;
+    max-height: 350px;
+    overflow-y: auto;
+    width: 100%;
+    border: 1px solid #444;
+    padding: 10px;
+    background-color: rgba(10, 10, 10, 0.85);
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1) inset;
+}
+
+#ranking table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid #333;
+    animation: tableGlow 4s infinite alternate;
+}
+
+@keyframes tableGlow {
+    from { box-shadow: 0 0 5px rgba(0, 255, 255, 0.3); }
+    to { box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); }
+}
+
+#ranking th {
+    background-color: #1a1a1a;
+    color: var(--color-primary);
+    text-shadow: 0 0 5px var(--color-primary);
+    padding: 10px;
+    border: 1px solid #333;
+    position: sticky;
+    top: 0;
+}
+
+#ranking td {
+    padding: 8px 10px;
+    border: 1px solid #333;
+    color: #ffffff; /* Mayor contraste */
+    text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+    transition: all 0.3s;
+}
+
+#ranking tr:nth-child(even) {
+    background-color: rgba(30, 30, 30, 0.7);
+}
+
+#ranking tr:hover td {
+    background-color: rgba(0, 255, 255, 0.1);
+    color: #ffffff;
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+/* Top 3 jugadores destacados con mayor contraste */
+#ranking tr:nth-child(1) td {
+    background-color: rgba(255, 215, 0, 0.3); /* Oro más contrastante */
+    color: #ffd700;
+    text-shadow: 0 0 5px #ffd700;
+    font-weight: bold;
+}
+
+#ranking tr:nth-child(2) td {
+    background-color: rgba(192, 192, 192, 0.3); /* Plata más contrastante */
+    color: #e0e0e0;
+    text-shadow: 0 0 5px #e0e0e0;
+    font-weight: bold;
+}
+
+#ranking tr:nth-child(3) td {
+    background-color: rgba(205, 127, 50, 0.3); /* Bronce más contrastante */
+    color: #ffa54f;
+    text-shadow: 0 0 5px #ffa54f;
+    font-weight: bold;
+}
+
+/* --- MODAL DE TÉRMINOS --- */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 30;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.8);
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #0a0a0a;
+    margin: 5% auto;
+    padding: 20px;
+    border: 2px solid var(--color-primary);
+    box-shadow: var(--glow-primary);
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    border-radius: 8px;
+    overflow: hidden;
+    animation: modalSlideIn 0.4s;
+}
+
+.close-btn {
+    color: var(--color-primary);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.close-btn:hover {
+    color: #ffffff;
+    text-shadow: 0 0 10px var(--color-primary);
+}
+
+.terms-content {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #333;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.terms-content p {
+    color: #cccccc;
+    font-size: 12px;
+    line-height: 1.8;
+    margin-bottom: 15px;
+}
+
+#acceptTermsBtn {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 20px;
+    background: #000000;
+    color: var(--color-success);
+    border: 2px solid var(--color-success);
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Press Start 2P', monospace;
+}
+
+#acceptTermsBtn:hover {
+    background: var(--color-success);
+    color: #000000;
+    box-shadow: 0 0 10px var(--color-success);
+}
+
+/* --- ORIENTACIÓN Y RESPONSIVE DESIGN --- */
 #orientation-message {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    display: none;
-    justify-content: center;
+    background: rgba(0, 0, 0, 0.9);
+    color: var(--color-primary);
     align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    flex-direction: column;
     text-align: center;
+    font-family: 'Press Start 2P', monospace;
 }
 
-.rotate-icon {
-    font-size: 3em;
-    margin-top: 20px;
+#orientation-message .rotate-icon {
+    font-size: 50px;
+    margin: 20px;
+    animation: rotate 2s infinite linear;
 }
 
-/* Estilos adicionales para mejorar la apariencia */
-.player-jump {
-    animation: jump 0.5s ease-out;
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(90deg); }
 }
 
-@keyframes jump {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-100px); }
-    100% { transform: translateY(0); }
+/* --- MEDIA QUERIES --- */
+@media screen and (max-width: 768px) {
+    .screen h1 {
+        font-size: 24px;
+    }
+    
+    .screen p {
+        font-size: 12px;
+        max-width: 90%;
+    }
+    
+    .form-group {
+        width: 90%;
+    }
+    
+    .screen button, #registerButton {
+        padding: 12px 20px;
+        font-size: 14px;
+        min-width: 180px;
+    }
+    
+    .ranking-modal-content {
+        width: 90%;
+        padding: 15px;
+    }
+    
+    #rankingButton {
+        padding: 8px 12px;
+        font-size: 10px;
+    }
+    
+    /* Mostrar el mensaje de orientación solo en modo retrato */
+    @media (orientation: portrait) {
+        #orientation-message {
+            display: flex;
+        }
+        
+        #gameContainer {
+            display: none;
+        }
+    }
 }
 
-.obstacle-animation {
-    animation: obstacleMove 5s linear infinite;
+/* Soporte específico para iPhone */
+@supports (-webkit-touch-callout: none) {
+    #gameContainer {
+        height: -webkit-fill-available;
+    }
+    
+    body, html {
+        height: -webkit-fill-available;
+    }
 }
 
-@keyframes obstacleMove {
-    0% { transform: translateX(800px); }
-    100% { transform: translateX(-50px); }
+/* Controles de sonido */
+.sound-control {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s;
+    box-shadow: var(--glow-primary);
 }
 
-.coin-animation {
-    animation: coinFloat 2s ease-in-out infinite;
+.sound-control:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
 }
 
-@keyframes coinFloat {
-    0% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0); }
+.sound-icon {
+    font-size: 20px;
+    color: var(--color-primary);
+    text-shadow: 0 0 5px var(--color-primary);
+    font-style: normal;
 }
