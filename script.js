@@ -23,6 +23,12 @@ const closeBtn = document.querySelector('.close-btn');
 const acceptTermsBtn = document.getElementById('acceptTermsBtn');
 const termsCheckbox = document.getElementById('termsCheckbox');
 
+// Elementos de Ranking
+const rankingButton = document.getElementById('rankingButton');
+const rankingModal = document.getElementById('rankingModal');
+const rankingModalContent = document.getElementById('rankingModalContent');
+const rankingCloseBtn = document.querySelector('.ranking-close-btn');
+
 // --- CONSTANTES Y VARIABLES GLOBALES ---
 const gravity = 0.65;
 const initialJumpStrength = 18;
@@ -36,6 +42,10 @@ const OBSTACLE_MIN_GAP = 120; // Espacio mínimo entre obstáculos (ms)
 const MAX_CONSECUTIVE_OBSTACLES = 3; // Máximo número de obstáculos consecutivos
 const MIN_COIN_INTERVAL = 1800; // Intervalo mínimo entre monedas (ms)
 const OBSTACLE_RATE_DECREASE = 0.97; // Factor de reducción de frecuencia de obstáculos por nivel de combo
+const MIN_OBSTACLE_HEIGHT = 0; // altura mínima (suelo)
+const MAX_OBSTACLE_HEIGHT = 300; // altura máxima
+const FLYING_OBSTACLE_CHANCE = 0.4; // 40% de probabilidad de obstáculo volador
+const OBSTACLE_HEIGHT_STEPS = 3; // Número de posibles alturas
 
 let gameRunning = false;
 let score = 0;
@@ -61,7 +71,6 @@ let coinInterval;
 let lastObstacleTime = 0;
 let consecutiveObstacles = 0;
 let lastCoinTime = 0;
-
 // --- FUNCIONES DE ADAPTACIÓN RESPONSIVA ---
 
 // Función para verificar si la página está en un iframe
@@ -107,12 +116,53 @@ function adjustGameContainer() {
     // Ajustes adicionales para móviles
     if (isMobileDevice()) {
         document.documentElement.style.touchAction = 'none'; // Prevenir desplazamiento táctil
+        
+        // Mostrar instrucciones para móviles
+        const mobileInstructions = document.querySelector('.mobile-instructions');
+        if (mobileInstructions) {
+            mobileInstructions.style.display = 'block';
+        }
+        
+        // Verificar orientación
         if (window.innerHeight > window.innerWidth) {
             // En modo retrato
             document.body.classList.add('portrait');
+            if (document.getElementById('orientation-message')) {
+                document.getElementById('orientation-message').style.display = 'flex';
+            }
         } else {
             document.body.classList.remove('portrait');
+            if (document.getElementById('orientation-message')) {
+                document.getElementById('orientation-message').style.display = 'none';
+            }
         }
+    }
+}
+
+// Configurar controles para dispositivos móviles
+function setupMobileControls() {
+    if (isMobileDevice() && !document.querySelector('.mobile-controls')) {
+        // Mostrar controles táctiles si es móvil
+        const mobileControls = document.createElement('div');
+        mobileControls.className = 'mobile-controls';
+        
+        const jumpButton = document.createElement('div');
+        jumpButton.className = 'mobile-control-button';
+        jumpButton.textContent = '↑';
+        jumpButton.addEventListener('touchstart', function(e) {
+            if (gameRunning) {
+                jump();
+                e.preventDefault();
+            }
+        });
+        
+        mobileControls.appendChild(jumpButton);
+        container.appendChild(mobileControls);
+        
+        // Desactivar comportamientos por defecto de toques
+        document.addEventListener('touchmove', function(e) {
+            if (gameRunning) e.preventDefault();
+        }, { passive: false });
     }
 }
 
@@ -121,10 +171,12 @@ function adjustGameContainer() {
 // Funciones para el modal de términos y condiciones
 function openTermsModal() {
     termsModal.style.display = "block";
+    soundManager.play('menu');
 }
 
 function closeTermsModal() {
     termsModal.style.display = "none";
+    soundManager.play('menu');
 }
 
 function acceptTerms() {
@@ -145,8 +197,61 @@ acceptTermsBtn.addEventListener('click', acceptTerms);
 window.addEventListener('click', function(e) {
     if (e.target === termsModal) {
         closeTermsModal();
+    } else if (e.target === rankingModal) {
+        closeRankingModal();
     }
 });
+// Función para cargar y mostrar el ranking en cualquier momento
+async function showRankingModal() {
+    rankingModal.style.display = 'block';
+    rankingModalContent.innerHTML = "<p>Cargando ranking...</p>";
+    soundManager.play('menu');
+    
+    try {
+        // Obtener datos del ranking
+        const response = await fetch(RANKING_URL);
+        if (!response.ok) throw new Error(`Error al obtener ranking: ${response.statusText}`);
+        const data = await response.json();
+        
+        // Procesar y mostrar ranking ordenado de mayor a menor puntuación
+        const top = data
+            .map(r => ({
+                ...r,
+                puntaje: parseInt(String(r.puntaje).replace(/[^\d]/g, '')) || 0,
+                nombre: r.nombre || "Anónimo"
+            }))
+            .sort((a, b) => b.puntaje - a.puntaje)
+            .slice(0, 20);
+        
+        let table = '<h2>Ranking Top 20</h2><table><thead><tr><th>#</th><th>Nombre</th><th>Puntos</th></tr></thead><tbody>';
+        
+        if (top.length > 0) {
+            top.forEach((r, i) => {
+                const safeName = String(r.nombre)
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .substring(0, 15);
+                
+                table += `<tr><td>${i + 1}</td><td>${safeName}</td><td>${r.puntaje}</td></tr>`;
+            });
+        } else {
+            table += '<tr><td colspan="3">No hay jugadores registrados aún</td></tr>';
+        }
+        
+        table += '</tbody></table>';
+        rankingModalContent.innerHTML = table;
+        
+    } catch (error) {
+        console.error("Error con el ranking:", error);
+        rankingModalContent.innerHTML = "<p>No se pudo cargar el ranking. Intenta más tarde.</p>";
+    }
+}
+
+// Cerrar el modal de ranking
+function closeRankingModal() {
+    rankingModal.style.display = 'none';
+    soundManager.play('menu');
+}
 
 // Manejo del formulario de registro
 registerForm.addEventListener('submit', function(e) {
@@ -173,17 +278,23 @@ registerForm.addEventListener('submit', function(e) {
     if (playerName.length > 15) playerName = playerName.substring(0, 15);
     playerEmail = playerEmailInput.value.trim();
     
+    // Reproducir sonido
+    soundManager.play('menu');
+    
     // Pasar a la pantalla de inicio
     registerScreen.style.display = 'none';
     startScreen.style.display = 'flex';
 });
 
-// Añadir un listener adicional para el botón de registro (por si acaso)
+// Añadir un listener adicional para el botón de registro
 registerButton.addEventListener('click', function(e) {
     e.preventDefault();
     registerForm.dispatchEvent(new Event('submit'));
 });
 
+// Listener para el botón de ranking
+rankingButton.addEventListener('click', showRankingModal);
+rankingCloseBtn.addEventListener('click', closeRankingModal);
 // --- FUNCIÓN DE INICIO DEL JUEGO (MEJORADA) ---
 function startGame() {
     if (gameRunning) return;  // Evitar inicio doble
@@ -214,6 +325,14 @@ function startGame() {
     // Programar generación de obstáculos y monedas con tiempos dinámicos
     scheduleNextObstacle();
     scheduleNextCoin();
+    
+    // Reproducir sonido de inicio
+    soundManager.play('start');
+    
+    // Iniciar música de fondo después de un breve retraso
+    setTimeout(() => {
+        soundManager.play('background');
+    }, 500);
 
     if (gameLoopId) cancelAnimationFrame(gameLoopId);
     gameLoopId = requestAnimationFrame(updateGame);
@@ -275,7 +394,6 @@ function scheduleNextCoin() {
         scheduleNextCoin();
     }, actualDelay);
 }
-
 // --- BUCLE PRINCIPAL DEL JUEGO (MEJORADO) ---
 function updateGame() {
     if (!gameRunning) return;
@@ -314,7 +432,6 @@ function updateGame() {
         if (isJumping) {
             isJumping = false;
             // Al aterrizar, ya no está saltando (se quita class en jump() con timeout)
-            // player.classList.remove('jumping'); // Removido para que el timeout en jump() controle la clase
             // Nota: no se resetea canDoubleJump aquí (persiste hasta uso o golpe)
         }
     }
@@ -335,16 +452,32 @@ function spawnObstacle() {
     
     const obs = document.createElement('div');
     obs.className = 'obstacle';
-    let obsWidth = 62; // Ancho base
     
-    // Asegurar que los obstáculos sean visibles
+    // Asegurar visibilidad del obstáculo
     obs.style.visibility = 'visible';
-    obs.style.display = 'block';
     obs.style.opacity = '1';
+    obs.style.display = 'block';
+    
+    let obsWidth = 62; // Ancho base
+    let obsHeight = 62; // Alto base
     
     // Posición inicial fuera de pantalla
     obs.style.left = container.offsetWidth + 'px';
-    obs.style.bottom = groundY + 'px';
+    
+    // Decidir si el obstáculo será en el suelo o a una altura
+    let obstacleBottom = groundY; // Por defecto en el suelo
+    
+    // Solo crear obstáculos voladores después de cierto puntaje
+    if (score > 10 && Math.random() < FLYING_OBSTACLE_CHANCE) {
+        // Seleccionar una altura aleatoria de las posibles
+        const heightStep = Math.floor(Math.random() * OBSTACLE_HEIGHT_STEPS) + 1;
+        obstacleBottom = MIN_OBSTACLE_HEIGHT + (heightStep * (MAX_OBSTACLE_HEIGHT / OBSTACLE_HEIGHT_STEPS));
+        
+        // Agregar clase para estilos específicos
+        obs.classList.add('flying');
+    }
+    
+    obs.style.bottom = obstacleBottom + 'px';
     
     let makeLarger = false;
     let spawnSecond = false;
@@ -356,10 +489,10 @@ function spawnObstacle() {
             obs.style.height = '74px';
             obs.classList.add('large');
             obsWidth = 74;
+            obsHeight = 74;
             makeLarger = true;
         }
         
-        // Limitar la generación de segundos obstáculos consecutivos
         if (Math.random() < 0.4 && consecutiveObstacles < MAX_CONSECUTIVE_OBSTACLES) {
             spawnSecond = true;
         }
@@ -369,44 +502,70 @@ function spawnObstacle() {
     obstacles.push({
         element: obs,
         width: obsWidth,
-        height: parseInt(obs.style.height || '62')
+        height: obsHeight,
+        bottom: obstacleBottom
     });
     
-    // Generar segundo obstáculo si aplica, asegurando separación
+    // Generar segundo obstáculo si aplica
     if (spawnSecond) {
         const secondObstacle = document.createElement('div');
         secondObstacle.className = 'obstacle';
         
-        // Asegurar que los obstáculos sean visibles
+        // Asegurar visibilidad
         secondObstacle.style.visibility = 'visible';
-        secondObstacle.style.display = 'block';
         secondObstacle.style.opacity = '1';
+        secondObstacle.style.display = 'block';
         
         // Calcular posición del segundo basado en el primero + gap
         const gap = MIN_OBSTACLE_GAP + Math.random() * 50;
         secondObstacle.style.left = (container.offsetWidth + obsWidth + gap) + 'px';
-        secondObstacle.style.bottom = groundY + 'px';
         
-        // Opcional: aplicar aleatoriedad de tamaño también al segundo
+        // Decidir si el segundo estará a una altura distinta (aumentar variedad)
+        let secondBottom;
+        
+        // Si el primero está en el aire, el segundo puede estar en el suelo o a otra altura
+        if (obstacleBottom > groundY) {
+            secondBottom = Math.random() < 0.6 ? groundY : 
+                        MIN_OBSTACLE_HEIGHT + (Math.floor(Math.random() * OBSTACLE_HEIGHT_STEPS) + 1) 
+                        * (MAX_OBSTACLE_HEIGHT / OBSTACLE_HEIGHT_STEPS);
+        } else {
+            // Si el primero está en el suelo, el segundo puede estar volando
+            if (score > 15 && Math.random() < 0.3) {
+                const heightStep = Math.floor(Math.random() * OBSTACLE_HEIGHT_STEPS) + 1;
+                secondBottom = MIN_OBSTACLE_HEIGHT + (heightStep * (MAX_OBSTACLE_HEIGHT / OBSTACLE_HEIGHT_STEPS));
+                secondObstacle.classList.add('flying');
+            } else {
+                secondBottom = groundY;
+            }
+        }
+        
+        secondObstacle.style.bottom = secondBottom + 'px';
+        
+        // Tamaño del segundo obstáculo
         let secondWidth = 62;
+        let secondHeight = 62;
         if (makeLarger && Math.random() < 0.5) {
             secondObstacle.style.width = '74px';
             secondObstacle.style.height = '74px';
             secondObstacle.classList.add('large');
             secondWidth = 74;
+            secondHeight = 74;
         }
         
         container.appendChild(secondObstacle);
         obstacles.push({
             element: secondObstacle,
             width: secondWidth,
-            height: parseInt(secondObstacle.style.height || '62')
+            height: secondHeight,
+            bottom: secondBottom
         });
     }
 }
-
 // --- COLISIONES Y ACTUALIZACIÓN DE OBSTÁCULOS (MEJORADA) ---
 function updateObstacles() {
+    // Guardar el estado actual del combo para detectar colisiones
+    const initialCombo = combo;
+    
     obstacles = obstacles.filter(obstacle => {
         const obstacleElement = obstacle.element;
         
@@ -415,10 +574,10 @@ function updateObstacles() {
             return false;
         }
         
-        // Asegurar que el obstáculo sea visible
+        // Asegurar visibilidad del obstáculo
         obstacleElement.style.visibility = 'visible';
-        obstacleElement.style.display = 'block';
         obstacleElement.style.opacity = '1';
+        obstacleElement.style.display = 'block';
         
         let currentLeft = parseFloat(obstacleElement.style.left || '0');
         let newLeft = currentLeft - currentSpeed;
@@ -461,6 +620,11 @@ function updateObstacles() {
         }
         return true; // Mantener en el array si no colisiona ni sale
     });
+    
+    // Si el combo se resetea a 0, se produjo un golpe
+    if (initialCombo > 0 && combo === 0) {
+        soundManager.play('hit');
+    }
 }
 
 // --- GENERACIÓN DE MONEDAS (MEJORADA) ---
@@ -495,9 +659,11 @@ function spawnCoin() {
         height: 50 // Alto estándar para monedas
     });
 }
-
 // --- COLISIONES Y ACTUALIZACIÓN DE MONEDAS (MEJORADA) ---
 function updateCoins() {
+    // Guardar el estado actual de las monedas
+    const initialCoinsCount = coins.length;
+    
     coins = coins.filter(coinData => {
         const coinElement = coinData.element;
         
@@ -551,15 +717,28 @@ function updateCoins() {
         }
         return true; // Mantener en el array si no colisiona ni sale
     });
+    
+    // Si se recogió una moneda, reproducir sonido
+    if (coins.length < initialCoinsCount) {
+        // Diferentes sonidos según el tipo de moneda recogida
+        if (combo >= 6) {
+            soundManager.play('powerup'); // Moneda amarilla (poder)
+        } else {
+            soundManager.play('coin'); // Moneda normal
+        }
+    }
 }
 
-// --- FUNCIÓN DE SALTO (MEJORADA - Lógica idéntica, reestructurada) ---
+// --- FUNCIÓN DE SALTO (MEJORADA) ---
 function jump() {
     if (!gameRunning) return;
+
+    // Verificar si es un salto nuevo o un doble salto
+    const wasJumping = isJumping;
     
     // Ajustar fuerza de salto dinámicamente según combo
     const currentJumpStrength = initialJumpStrength * (combo >= 3 ? 1.15 : 1); // Ligero boost con combo 3+
-    
+
     // Salto Normal (desde el suelo)
     if (!isJumping) {
         isJumping = true;
@@ -573,13 +752,22 @@ function jump() {
         velocityY = currentJumpStrength * 1.1; // Doble salto un poco más fuerte
         canDoubleJump = false; // ¡Consume el poder!
         player.classList.remove('powered'); // Quitar estilo visual del poder amarillo
-        
+
         // Re-aplicar clase jumping para efecto visual de doble salto si existe
         player.classList.add('jumping');
         setTimeout(() => { if(player.classList.contains('jumping')) player.classList.remove('jumping'); }, 200);
+    } else {
+        // No se realizó salto efectivo
+        return;
+    }
+    
+    // Reproducir el sonido correspondiente
+    if (!wasJumping) {
+        soundManager.play('jump');
+    } else if (canDoubleJump) {
+        soundManager.play('doubleJump');
     }
 }
-
 // --- TEXTO FLOTANTE (MEJORADA) ---
 function showFloatingText(x, y, text, isPlus) {
     const el = document.createElement('div');
@@ -648,7 +836,7 @@ function updateUI() {
     comboEl.textContent = 'Combo: ' + combo;
 }
 
-// --- FIN DE JUEGO Y RANKING (MEJORADA PARA ORDENAR POR PUNTUACIÓN) ---
+// --- FIN DE JUEGO Y RANKING (MEJORADA) ---
 async function gameOver() {
     if (!gameRunning) return; // Evitar múltiples llamadas si ya terminó
     
@@ -656,6 +844,12 @@ async function gameOver() {
     clearIntervals(); // Detener generación de obstáculos/monedas
     if (gameLoopId) cancelAnimationFrame(gameLoopId); // Detener bucle de juego
     gameLoopId = null;
+    
+    // Detener música de fondo
+    soundManager.pause('background');
+    
+    // Reproducir sonido de fin de juego
+    soundManager.play('gameOver');
     
     // Mostrar Puntuación Final Inmediatamente
     finalScoreTextEl.textContent = `${playerName}, tu puntuación: ${score} | Combo Máx: ${combo}`;
@@ -716,16 +910,8 @@ async function gameOver() {
         }
     }
 }
-
 // --- EVENT LISTENERS (MEJORADO Y REORGANIZADO) ---
 startButton.addEventListener('click', startGame);
-
-// Usar Enter en input para enviar formulario (uso estándar)
-playerNameInput.addEventListener('keyup', (e) => {
-    if (e.key === 'Enter' && !gameRunning && startScreen.style.display !== 'none') {
-        startGame();
-    }
-});
 
 // Control de teclas mejorado para diferentes navegadores y dispositivos
 document.addEventListener('keydown', (e) => {
@@ -756,25 +942,11 @@ container.addEventListener('touchstart', (e) => {
     }
 }, { passive: false }); // Necesario para poder usar preventDefault()
 
-// Mejor soporte para gestos táctiles en dispositivos móviles
-if (isMobileDevice()) {
-    container.addEventListener('touchmove', (e) => {
-        if (gameRunning) e.preventDefault(); // Prevenir scroll durante el juego
-    }, { passive: false });
-    
-    // Tap anywhere to jump on mobile
-    document.addEventListener('touchstart', (e) => {
-        if (gameRunning && !e.target.closest('button, a, input')) {
-            jump();
-            e.preventDefault();
-        }
-    }, { passive: false });
-}
-
 // MEJORA: Reiniciar juego sin recargar la página usando el nuevo botón
 restartButton.addEventListener('click', () => {
     // Solo reiniciar si el juego NO está corriendo actualmente (evita problemas)
     if (!gameRunning) {
+        soundManager.play('menu');
         rankingDisplayScreen.style.display = 'none';
         startScreen.style.display = 'flex';
     }
@@ -783,6 +955,7 @@ restartButton.addEventListener('click', () => {
 // Ajustar tamaño al cargar y al cambiar el tamaño de ventana
 window.addEventListener('load', () => {
     adjustGameContainer();
+    setupMobileControls();
     
     // Verificar si hay soporte para orientación en el dispositivo
     if (window.screen && window.screen.orientation) {
@@ -791,6 +964,14 @@ window.addEventListener('load', () => {
         // Fallback para dispositivos que no soportan orientation API
         window.addEventListener('orientationchange', adjustGameContainer);
     }
+    
+    // Sonido al hacer clic en los botones
+    const buttons = document.querySelectorAll('button, .ranking-btn, #openTermsBtn');
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            soundManager.play('menu');
+        });
+    });
 });
 
 window.addEventListener('resize', adjustGameContainer);
@@ -800,28 +981,13 @@ window.addEventListener('orientationchange', () => {
     setTimeout(adjustGameContainer, 100); // Pequeño retraso para asegurar que la orientación se actualizó
 });
 
-// Inicializar: enfocar el campo de correo electrónico automáticamente 
-window.addEventListener('load', function() {
-    // Pequeño retraso para asegurar que todos los elementos están cargados
-    setTimeout(() => {
-        if (playerEmailInput) {
-            playerEmailInput.focus();
-        }
-        
-        // Forzar visibilidad de obstáculos (fix para el bug de invisibilidad)
-        document.head.insertAdjacentHTML('beforeend', `
-            <style>
-            .obstacle {
-                visibility: visible !important;
-                display: block !important;
-                opacity: 1 !important;
-                background: rgba(255, 0, 255, 0.3) !important;
-                border: 4px solid #ff00ff !important;
-                box-shadow: 0 0 8px #ff00ff, 0 0 15px #ff00ff inset !important;
-            }
-            </style>
-        `);
-    }, 100);
+// Pausar/reanudar sonidos cuando la pestaña no está activa
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        soundManager.pause('background');
+    } else if (gameRunning && !soundManager.isMuted) {
+        soundManager.resume('background');
+    }
 });
 
 // Prevenir errores en navegadores que no soporten ciertas características
