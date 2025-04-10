@@ -233,18 +233,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function loadRanking() {
-        fetch('/api/ranking')
-            .then(response => response.json())
-            .then(data => {
-                let rankingHTML = '<h2>Ranking de Jugadores</h2><ol>';
-                data.forEach(player => {
-                    rankingHTML += `<li>${player.name} - ${player.score}</li>`;
-                });
-                rankingHTML += '</ol>';
-                rankingDiv.innerHTML = rankingHTML;
-            })
-            .catch(error => console.error('Error al cargar el ranking:', error));
-    }
+    fetch('/api/ranking')
+        .then(response => response.json())
+        .then(data => {
+            // Ordenar el ranking de mayor a menor puntuación
+            const sortedData = data.sort((a, b) => b.score - a.score);
+            
+            let rankingHTML = '<h2>Ranking de Jugadores</h2>';
+            rankingHTML += '<table><thead><tr><th>#</th><th>Jugador</th><th>Puntos</th></tr></thead><tbody>';
+            
+            sortedData.forEach((player, index) => {
+                const playerName = player.name ? player.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "Anónimo";
+                const playerScore = player.score || 0;
+                
+                // Fila con clase especial para los primeros 3 lugares
+                const rowClass = index < 3 ? `rank-${index+1}` : '';
+                
+                rankingHTML += `<tr class="${rowClass}">
+                    <td>${index + 1}</td>
+                    <td>${playerName}</td>
+                    <td>${playerScore}</td>
+                </tr>`;
+            });
+            
+            rankingHTML += '</tbody></table>';
+            rankingDiv.innerHTML = rankingHTML;
+        })
+        .catch(error => {
+            console.error('Error al cargar el ranking:', error);
+            rankingDiv.innerHTML = '<p>No se pudo cargar el ranking. Intenta más tarde.</p>';
+        });
+}
 
     // Eventos
     document.addEventListener('keydown', event => {
