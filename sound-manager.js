@@ -3,18 +3,18 @@ class SoundManager {
     constructor() {
         this.sounds = {};
         this.isMuted = false;
-        this.musicVolume = 0.5;
-        this.sfxVolume = 0.7;
+        this.musicVolume = parseFloat(localStorage.getItem('musicVolume')) || 0.5; // Cargar volumen de localStorage
+        this.sfxVolume = parseFloat(localStorage.getItem('sfxVolume')) || 0.7; // Cargar volumen de localStorage
     }
 
     loadSounds() {
         try {
             console.log("Cargando sonidos...");
             
-            // Música de fondo - usar un archivo local o un CDN confiable
+            // Música de fondo
             this.loadSound('background', 'https://freesound.org/data/previews/473/473584_5674468-lq.mp3', true, this.musicVolume);
             
-            // Efectos de sonido (SFX) - usar archivos locales o CDN confiable
+            // Efectos de sonido (SFX)
             this.loadSound('jump', 'https://freesound.org/data/previews/369/369515_6687899-lq.mp3', false, this.sfxVolume);
             this.loadSound('coin', 'https://freesound.org/data/previews/341/341695_5858296-lq.mp3', false, this.sfxVolume);
             this.loadSound('hit', 'https://freesound.org/data/previews/331/331912_5883485-lq.mp3', false, this.sfxVolume);
@@ -23,7 +23,6 @@ class SoundManager {
             console.log("Sonidos cargados correctamente");
         } catch (e) {
             console.error("Error al cargar sonidos:", e);
-            // Crear sonidos de fallback en caso de error
             this.createFallbackSounds();
         }
     }
@@ -33,11 +32,16 @@ class SoundManager {
         sound.loop = loop;
         sound.volume = volume;
         this.sounds[name] = sound;
+        sound.addEventListener('error', (e) => {
+            console.error(`Error al cargar ${name}:`, e);
+            this.createFallbackSound(name); // Crear sonido de respaldo individual
+        });
     }
 
     play(name) {
         const sound = this.sounds[name];
         if (sound && !this.isMuted) {
+            sound.currentTime = 0; // Reiniciar el sonido
             sound.play();
         }
     }
@@ -57,8 +61,48 @@ class SoundManager {
     }
 
     createFallbackSounds() {
-        // Crear sonidos de respaldo en caso de que los archivos no se carguen correctamente
-        console.log("Sonidos de respaldo creados");
+        // Crear sonidos de respaldo para todos los sonidos
+        for (const name in this.sounds) {
+            this.createFallbackSound(name);
+        }
+    }
+
+    createFallbackSound(name) {
+        // Crear un sonido de respaldo individual
+        this.sounds[name] = new Audio(); // Sonido vacío
+        console.warn(`Sonido de respaldo creado para ${name}`);
+    }
+
+    setMusicVolume(volume) {
+        this.musicVolume = volume;
+        if (this.sounds.background) {
+            this.sounds.background.volume = volume;
+        }
+        localStorage.setItem('musicVolume', volume); // Guardar en localStorage
+    }
+
+    setSfxVolume(volume) {
+        this.sfxVolume = volume;
+        for (const name in this.sounds) {
+            if (name !== 'background') {
+                this.sounds[name].volume = volume;
+            }
+        }
+        localStorage.setItem('sfxVolume', volume); // Guardar en localStorage
+    }
+
+    mute() {
+        this.isMuted = true;
+        for (const name in this.sounds) {
+            this.pause(name);
+        }
+    }
+
+    unmute() {
+        this.isMuted = false;
+        if (document.visibilityState === 'visible') {
+            this.resume('background');
+        }
     }
 }
 
@@ -187,4 +231,3 @@ buttons.forEach(button => {
         soundManager.play('menu');
     });
 });
-
