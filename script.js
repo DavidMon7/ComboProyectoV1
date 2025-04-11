@@ -27,10 +27,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const rankingButton = document.getElementById('rankingButton');
     const rankingModal = document.getElementById('rankingModal');
     const rankingModalContent = document.getElementById('rankingModalContent');
+    const rankingModalData = document.getElementById('rankingModalData');
     const rankingCloseBtn = document.querySelector('.ranking-close-btn');
     const mobileInstructions = document.querySelector('.mobile-instructions');
     const muteButton = document.getElementById('muteButton');
-
+    const pauseOverlay = document.getElementById('pauseOverlay');
+    const resumeButton = document.getElementById('resumeButton');
+    const exitPauseButton = document.getElementById('exitPauseButton');
+    const closeRankingBtn = document.getElementById('closeRankingBtn');
+    
     // Variables del juego
     let playerY = 20; // Posición inicial en el suelo
     let playerSpeedY = 0; // Velocidad inicial en Y (0 = sin movimiento)
@@ -59,7 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let baseSpeed = 5; // Velocidad base para obstáculos
     let maxObstacles = 5; // Limitar número de obstáculos
     let maxCoins = 7; // Limitar número de monedas
-    let isOnGround = true; // Nueva variable para controlar si el jugador está en el suelo
+    let isOnGround = true; // Para controlar si el jugador está en el suelo
+
+    // Verificar si hay datos guardados localmente
+    checkLocalStorageData();
+
+    // Referencias a gestores externos
+    const soundManager = window.soundManager || null;
 
     // Mostrar instrucciones específicas para móviles si es necesario
     if (window.deviceManager && (window.deviceManager.isMobile || window.deviceManager.isTablet)) {
@@ -68,9 +79,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Referencias a gestores externos
-    const soundManager = window.soundManager || null;
-
     // Asegurar que el botón de sonido tenga su evento
     if (muteButton && soundManager) {
         muteButton.addEventListener('click', () => {
@@ -78,13 +86,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // CORRECCIÓN: Inicializar la posición del jugador explícitamente
+    // Inicializar la posición del jugador explícitamente
     if (player) {
-        player.style.position = 'absolute'; // Asegurar que la posición sea absoluta
+        player.style.position = 'absolute';
         player.style.left = '50px';
         player.style.bottom = '20px';
-        // CORRECCIÓN: Establecer explícitamente top como auto para prevenir conflictos
-        player.style.top = 'auto';
+        player.style.top = 'auto'; // Prevenir conflictos con bottom
+    }
+
+    // Verificar si hay datos guardados en local storage
+    function checkLocalStorageData() {
+        // Intentar recuperar datos del jugador
+        const savedPlayerName = localStorage.getItem('playerName');
+        const savedPlayerEmail = localStorage.getItem('playerEmail');
+        
+        if (savedPlayerName && savedPlayerEmail) {
+            playerName = savedPlayerName;
+            playerEmail = savedPlayerEmail;
+            
+            // Si hay datos guardados, mostrar directamente la pantalla de inicio
+            if (registerScreen) registerScreen.style.display = 'none';
+            if (startScreen) startScreen.style.display = 'flex';
+            
+            console.log("Datos del jugador recuperados del almacenamiento local:", playerName, playerEmail);
+        }
     }
 
     // Funciones de utilidad
@@ -148,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(() => {
             floatingText.style.transform = 'translateY(-50px) scale(1.2)';
             floatingText.style.opacity = '0';
-        });
+});
         
         setTimeout(() => {
             if (floatingText.parentNode) {
@@ -163,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function jump() {
         if (gameRunning && !gamePaused) {
-            // CORRECCIÓN: Permitir salto solo si está en el suelo o tiene doble salto disponible
+            // Permitir salto solo si está en el suelo o tiene doble salto disponible
             if (isOnGround) {
                 playerSpeedY = -12;
                 isJumping = true;
@@ -175,7 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     soundManager.playSound('jump');
                 }
             } 
-            // CORRECCIÓN: Permitir doble salto solo si está habilitado y es el segundo salto
+            // Permitir doble salto solo si está habilitado y es el segundo salto
             else if (hasDoubleJump && jumpCount === 1) {
                 playerSpeedY = -10;
                 jumpCount = 2; // Segundo salto realizado
@@ -335,14 +360,14 @@ document.addEventListener('DOMContentLoaded', () => {
             frameCounter = 0;
         }
         
-        // CORRECCIÓN: Aplicar gravedad solo si está saltando o no está en el suelo
+        // Aplicar gravedad solo si está saltando o no está en el suelo
         if (isJumping || playerY > 20) {
             // Aplicar gravedad de forma más suave y consistente
             playerSpeedY += gravity * timeScale;
             playerY += playerSpeedY * timeScale;
         }
         
-        // CORRECCIÓN: Límites de la física para evitar que el jugador salga volando
+        // Límites de la física para evitar que el jugador salga volando
         // y reiniciar estado de salto cuando toque el suelo
         if (playerY <= 20) {
             playerY = 20; // Mantener en el suelo
@@ -354,14 +379,14 @@ document.addEventListener('DOMContentLoaded', () => {
             player.classList.remove('player-double-jump');
         }
         
-        // CORRECCIÓN: Mantener el jugador dentro de los límites superiores
+        // Mantener el jugador dentro de los límites superiores
         const maxHeight = gameContainer.offsetHeight - 40; // Altura del contenedor menos altura del jugador
         if (playerY > maxHeight) {
             playerY = maxHeight;
             playerSpeedY = 0;
         }
         
-        // CORRECCIÓN: Aplicar posición del jugador
+        // Aplicar posición del jugador
         player.style.bottom = `${playerY}px`;
         
         // Actualizar obstáculos
@@ -560,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // CORRECCIÓN: Asegurar que el bucle de animación continúe
+        // Asegurar que el bucle de animación continúe
         requestId = requestAnimationFrame(updateGame);
     }
 
@@ -573,11 +598,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reiniciar variables del juego
         gameRunning = true;
         gamePaused = false;
-        playerY = 20; // CORRECCIÓN: Siempre iniciar en el suelo
+        playerY = 20; // Siempre iniciar en el suelo
         playerSpeedY = 0;
         isJumping = false;
-        isOnGround = true; // CORRECCIÓN: Iniciar en el suelo
-        jumpCount = 0; // CORRECCIÓN: Iniciar con contador de saltos en 0
+        isOnGround = true; // Iniciar en el suelo
+        jumpCount = 0; // Iniciar con contador de saltos en 0
         score = 0;
         timer = 120;
         combo = 0;
@@ -607,7 +632,7 @@ document.addEventListener('DOMContentLoaded', () => {
         player.style.backgroundColor = '#007bff';
         player.style.bottom = `${playerY}px`;
         player.style.left = '50px';
-        player.style.top = 'auto'; // CORRECCIÓN: Evitar que top sobrescriba bottom
+        player.style.top = 'auto'; // Evitar que top sobrescriba bottom
         player.style.display = 'block';
         player.classList.remove('player-jump', 'player-double-jump');
         
@@ -664,9 +689,23 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Guardar puntuación en el servidor
         if (playerName && playerEmail) {
-            saveScore(playerName, playerEmail, score);
+            if (typeof window.saveScore === 'function') {
+                window.saveScore(playerName, playerEmail, score);
+            } else if (typeof saveScore === 'function') {
+                saveScore(playerName, playerEmail, score);
+            } else {
+                console.error("Función saveScore no encontrada");
+                // Intento de fallback
+                loadRanking();
+            }
         } else {
-            loadRanking();
+            if (typeof window.loadRanking === 'function') {
+                window.loadRanking();
+            } else if (typeof loadRanking === 'function') {
+                loadRanking();
+            } else {
+                console.error("Función loadRanking no encontrada");
+            }
         }
     }
     
@@ -697,7 +736,6 @@ document.addEventListener('DOMContentLoaded', () => {
         gameRunning = true;
         
         // Ocultar overlay de pausa
-        const pauseOverlay = document.getElementById('pauseOverlay');
         if (pauseOverlay) {
             pauseOverlay.style.display = 'none';
         }
@@ -713,114 +751,436 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     /**
-     * CORRECCIÓN: Mostrar el overlay de pausa con botones para continuar o salir
+     * Mostrar el overlay de pausa 
      */
     function showPauseOverlay() {
-        // Crear o actualizar overlay de pausa
-        let pauseOverlay = document.getElementById('pauseOverlay');
-        
-        if (!pauseOverlay) {
-            pauseOverlay = document.createElement('div');
-            pauseOverlay.id = 'pauseOverlay';
-            pauseOverlay.className = 'pause-overlay';
-            pauseOverlay.innerHTML = `
-                <div class="pause-content">
-                    <h2>Juego en Pausa</h2>
-                    <p>¿Qué deseas hacer?</p>
-                    <div class="pause-buttons">
-                        <button id="resumeButton" class="pause-button">Continuar</button>
-                        <button id="exitPauseButton" class="pause-button secondary">Salir</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(pauseOverlay);
-        } else {
-            // Si ya existe, pero tiene formato antiguo, actualizarlo
-            if (!pauseOverlay.querySelector('#resumeButton')) {
-                pauseOverlay.innerHTML = `
-                    <div class="pause-content">
-                        <h2>Juego en Pausa</h2>
-                        <p>¿Qué deseas hacer?</p>
-                        <div class="pause-buttons">
-                            <button id="resumeButton" class="pause-button">Continuar</button>
-                            <button id="exitPauseButton" class="pause-button secondary">Salir</button>
-                        </div>
-                    </div>
-                `;
-            }
-        }
+        if (!pauseOverlay) return;
         
         pauseOverlay.style.display = 'flex';
+    }
+    /**
+     * Maneja los datos del formulario de registro
+     */
+    function handleRegistration(e) {
+        e.preventDefault();
         
-        // Asegurarse de que los botones tengan sus event listeners
-        const resumeButton = document.getElementById('resumeButton');
-        if (resumeButton) {
-            // Eliminar listeners anteriores para evitar duplicados
-            const newResumeButton = resumeButton.cloneNode(true);
-            resumeButton.parentNode.replaceChild(newResumeButton, resumeButton);
-            
-            newResumeButton.addEventListener('click', () => {
-                resumeGame();
-            });
+        const emailInput = document.getElementById('playerEmail');
+        const nameInput = document.getElementById('playerName');
+        
+        if (!emailInput || !nameInput) {
+            console.error("No se encontraron los campos del formulario");
+            return;
         }
         
-        // Botón para salir al menú principal
-        const exitPauseButton = document.getElementById('exitPauseButton');
-        if (exitPauseButton) {
-            // Eliminar listeners anteriores para evitar duplicados
-            const newExitButton = exitPauseButton.cloneNode(true);
-            exitPauseButton.parentNode.replaceChild(newExitButton, exitPauseButton);
-            
-            newExitButton.addEventListener('click', () => {
-                // Ocultar pausa y mostrar pantalla de inicio
-                pauseOverlay.style.display = 'none';
-                gamePaused = false;
-                gameRunning = false;
-                startScreen.style.display = 'flex';
-                
-                // Detener música
-                if (soundManager) {
-                    soundManager.pauseSound('background');
-                }
-            });
+        playerEmail = emailInput.value.trim();
+        playerName = nameInput.value.trim();
+        
+        if (!playerEmail || !playerName) {
+            alert("Por favor, completa todos los campos");
+            return;
         }
         
-        // CORRECCIÓN: Añadir estilos para el overlay si no existen
-        if (!document.getElementById('pause-overlay-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'pause-overlay-styles';
-            styles.textContent = `
-                .pause-buttons {
-                    display: flex;
-                    justify-content: center;
-                    gap: 20px;
-                    margin-top: 20px;
-                }
-                
-                .pause-button {
-                    background: linear-gradient(to bottom, #000000, #111111);
-                    color: #00ffff;
-                    border: 3px solid #00ffff;
-                    box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
-                    border-radius: 8px;
-                    cursor: pointer;
-                    padding: 10px 20px;
-                    font-family: 'Press Start 2P', monospace;
-                    font-size: 14px;
-                    min-width: 120px;
-                    touch-action: manipulation;
-                }
-                
-                .pause-button.secondary {
-                    color: #ff00ff;
-                    border-color: #ff00ff;
-                    box-shadow: 0 0 15px rgba(255, 0, 255, 0.7);
-                }
-                
-                .pause-button:hover {
-                    transform: scale(1.05);
-                }
-            `;
-            document.head.appendChild(styles);
+        // Guardar datos del jugador en localStorage
+        localStorage.setItem('playerName', playerName);
+        localStorage.setItem('playerEmail', playerEmail);
+        
+        // Ocultar pantalla de registro y mostrar pantalla de inicio
+        registerScreen.style.display = 'none';
+        startScreen.style.display = 'flex';
+        
+        console.log("Usuario registrado:", playerName, playerEmail);
+    }
+    
+    /**
+     * Abre el modal de términos y condiciones
+     */
+    function openTermsModal() {
+        if (termsModal) {
+            termsModal.style.display = 'block';
         }
     }
+    
+    /**
+     * Cierra el modal de términos y condiciones
+     */
+    function closeTermsModal() {
+        if (termsModal) {
+            termsModal.style.display = 'none';
+        }
+    }
+    
+    /**
+     * Acepta los términos y condiciones y marca el checkbox
+     */
+    function acceptTerms() {
+        if (termsCheckbox) {
+            termsCheckbox.checked = true;
+        }
+        closeTermsModal();
+    }
+    
+    /**
+     * Abre el modal del ranking
+     */
+    function openRankingModal() {
+        if (rankingModal) {
+            rankingModal.style.display = 'block';
+            
+            // Cargar datos del ranking
+            if (rankingModalData) {
+                rankingModalData.innerHTML = '<div class="loading-ranking"><div class="spinner"></div><p>Cargando ranking...</p></div>';
+                
+                // Intentar cargar el ranking
+                if (typeof window.loadRanking === 'function') {
+                    window.loadRanking(rankingModalData);
+                } else if (typeof loadRanking === 'function') {
+                    loadRanking(rankingModalData);
+                } else {
+                    console.error("Función loadRanking no encontrada");
+                    rankingModalData.innerHTML = '<p class="ranking-error">No se pudo cargar el ranking</p>';
+                }
+            }
+        }
+    }
+    
+    /**
+     * Cierra el modal del ranking
+     */
+    function closeRankingModal() {
+        if (rankingModal) {
+            rankingModal.style.display = 'none';
+        }
+    }
+
+    // Event Listeners
+    
+    // Evento de salto con teclado
+    document.addEventListener('keydown', (event) => {
+        if (event.code === 'Space' || event.key === ' ') {
+            if (gameRunning && !gamePaused) {
+                jump();
+            } else if (startScreen.style.display === 'flex') {
+                // Si está en la pantalla de inicio, iniciar el juego
+                startScreen.style.display = 'none';
+                startGame();
+            } else if (rankingDisplay.style.display === 'block') {
+                // Si está en la pantalla de ranking, reiniciar
+                rankingDisplay.style.display = 'none';
+                startScreen.style.display = 'flex';
+            }
+            event.preventDefault(); // Prevenir scroll
+        } else if (event.code === 'Escape' || event.key === 'Escape') {
+            // Pausar/reanudar con Escape
+            if (gameRunning && !gamePaused) {
+                pauseGame();
+            } else if (gamePaused) {
+                resumeGame();
+            }
+        }
+    });
+    
+    // Evento de salto táctil
+    gameContainer.addEventListener('touchstart', (event) => {
+        if (gameRunning && !gamePaused) {
+            jump();
+            event.preventDefault(); // Prevenir comportamientos por defecto del navegador
+        }
+    });
+    
+    // Botón de inicio
+    if (startButton) {
+        startButton.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            startGame();
+        });
+    }
+    
+    // Botón de reinicio
+    if (restartButton) {
+        restartButton.addEventListener('click', () => {
+            rankingDisplay.style.display = 'none';
+            startScreen.style.display = 'flex';
+        });
+    }
+    
+    // Formulario de registro
+    if (registerForm) {
+        registerForm.addEventListener('submit', handleRegistration);
+    }
+    
+    // Evento para abrir términos y condiciones
+    if (openTermsBtn) {
+        openTermsBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openTermsModal();
+        });
+    }
+    
+    // Evento para cerrar términos y condiciones
+    const closeTermsBtn = document.querySelector('.close-btn');
+    if (closeTermsBtn) {
+        closeTermsBtn.addEventListener('click', closeTermsModal);
+    }
+    
+    // Evento para aceptar términos y condiciones
+    if (acceptTermsBtn) {
+        acceptTermsBtn.addEventListener('click', acceptTerms);
+    }
+    
+    // Evento para abrir el ranking
+    if (rankingButton) {
+        rankingButton.addEventListener('click', openRankingModal);
+    }
+    
+    // Evento para cerrar el ranking con el botón X
+    if (rankingCloseBtn) {
+        rankingCloseBtn.addEventListener('click', closeRankingModal);
+    }
+    
+    // Evento para cerrar el ranking con el botón cerrar
+    if (closeRankingBtn) {
+        closeRankingBtn.addEventListener('click', closeRankingModal);
+    }
+    
+    // Evento para reanudar el juego desde la pausa
+    if (resumeButton) {
+        resumeButton.addEventListener('click', resumeGame);
+    }
+    
+    // Evento para salir del juego desde la pausa
+    if (exitPauseButton) {
+        exitPauseButton.addEventListener('click', () => {
+            pauseOverlay.style.display = 'none';
+            gamePaused = false;
+            gameRunning = false;
+            
+            // Limpiar elementos del juego
+            document.querySelectorAll('.obstacle, .coin, .hit-effect, .jump-effect, .powerup-effect').forEach(el => {
+                if (el.parentNode) {
+                    el.remove();
+                }
+            });
+            
+            // Mostrar pantalla de inicio
+            startScreen.style.display = 'flex';
+            
+            // Detener música
+            if (soundManager) {
+                soundManager.pauseSound('background');
+            }
+        });
+    }
+
+    // Exponer funciones para uso global o desde otros scripts
+    window.startGame = startGame;
+    window.endGame = endGame;
+    window.pauseGame = pauseGame;
+    window.resumeGame = resumeGame;
+    window.jump = jump;
+    window.spawnObstacle = spawnObstacle;
+    window.spawnCoin = spawnCoin;
+    
+    // Inicializar sistema de ranking si no está ya definido
+    if (!window.loadRanking || !window.saveScore) {
+        // Crear funciones locales de fallback
+        window.loadRanking = function(targetElement) {
+            const target = targetElement || rankingDiv;
+            if (!target) return;
+            
+            target.innerHTML = '<p>Cargando ranking...</p>';
+            
+            // Intentar obtener rankings del localStorage
+            try {
+                const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
+                displayRanking(rankings, target);
+            } catch (e) {
+                console.error("Error al cargar rankings locales:", e);
+                target.innerHTML = '<p class="ranking-error">No se pudo cargar el ranking</p>';
+            }
+        };
+        
+        window.saveScore = function(name, email, score) {
+            if (!name || !email || score === undefined) {
+                console.error("Datos incompletos para guardar puntuación");
+                return;
+            }
+            
+            // Obtener rankings existentes
+            const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
+            
+            // Buscar si ya existe un registro para este jugador
+            const existingIndex = rankings.findIndex(r => r.name === name && r.email === email);
+            
+            if (existingIndex >= 0) {
+                // Actualizar sólo si la puntuación es mayor
+                if (score > (Number(rankings[existingIndex].score) || 0)) {
+                    rankings[existingIndex] = {
+                        name,
+                        email,
+                        score,
+                        date: new Date().toISOString()
+                    };
+                }
+            } else {
+                // Añadir nueva entrada
+                rankings.push({
+                    name,
+                    email,
+                    score,
+                    date: new Date().toISOString()
+                });
+            }
+            
+            // Guardar en localStorage
+            localStorage.setItem('gameRankings', JSON.stringify(rankings));
+            
+            // Cargar ranking actualizado
+            window.loadRanking();
+        };
+        
+        function displayRanking(data, targetElement) {
+            const target = targetElement || rankingDiv;
+            if (!target) return;
+            
+            // Si no hay datos, mostrar mensaje
+            if (!data || data.length === 0) {
+                target.innerHTML = '<div class="empty-ranking"><p>¡Sé el primero en registrar tu puntuación!</p></div>';
+                return;
+            }
+            
+            // Ordenar de mayor a menor puntuación
+            const sortedData = data.sort((a, b) => {
+                // Asegurar que estamos comparando números
+                const scoreA = Number(a.score || a.puntos || 0);
+                const scoreB = Number(b.score || b.puntos || 0);
+                return scoreB - scoreA;
+            });
+            
+            // Limitar a los 20 mejores
+            const topPlayers = sortedData.slice(0, 20);
+            
+            // Buscar jugador actual
+            const currentPlayerIndex = playerName ? topPlayers.findIndex(p => {
+                // Buscar por nombre y/o email
+                const pName = p.name || p.nombre || '';
+                const pEmail = p.email || p.correo || '';
+                return pName === playerName || pEmail === playerEmail;
+            }) : -1;
+            
+            // Construir HTML de la tabla
+            let rankingHTML = '<h2>Ranking de Jugadores</h2>';
+            rankingHTML += '<table><thead><tr><th>#</th><th>Jugador</th><th>Puntos</th></tr></thead><tbody>';
+            
+            topPlayers.forEach((player, index) => {
+                // Extraer datos con compatibilidad para diferentes estructuras
+                const playerName = player.name || player.nombre || 'Anónimo';
+                const playerScore = Number(player.score || player.puntos || 0);
+                
+                // Sanitizar nombre para evitar XSS
+                const sanitizedName = String(playerName)
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .substring(0, 15);
+                
+                // Asignar clases para estilos
+                let rowClass = index < 3 ? `rank-${index+1}` : '';
+                
+                // Resaltar jugador actual
+                if (index === currentPlayerIndex) {
+                    rowClass += ' current-player';
+                }
+                
+                rankingHTML += `<tr class="${rowClass}">
+                    <td>${index + 1}</td>
+                    <td>${sanitizedName}</td>
+                    <td>${playerScore}</td>
+                </tr>`;
+            });
+            
+            rankingHTML += '</tbody></table>';
+            
+            // Actualizar DOM
+            target.innerHTML = rankingHTML;
+            
+            // Mostrar posición del jugador actual si no está en el top 20
+            if (currentPlayerIndex === -1 && playerName) {
+                const fullPlayerIndex = sortedData.findIndex(p => {
+                    const pName = p.name || p.nombre || '';
+                    const pEmail = p.email || p.correo || '';
+                    return pName === playerName || pEmail === playerEmail;
+                });
+                
+                if (fullPlayerIndex !== -1) {
+                    const playerPosition = document.createElement('p');
+                    playerPosition.className = 'player-position';
+                    playerPosition.textContent = `Tu posición: ${fullPlayerIndex + 1} de ${sortedData.length}`;
+                    target.appendChild(playerPosition);
+                } else if (score > 0) {
+                    // Mensaje para animar a jugar
+                    const playerPosition = document.createElement('p');
+                    playerPosition.className = 'player-position';
+                    playerPosition.textContent = `¡Tu puntuación se registrará al finalizar la partida!`;
+                    target.appendChild(playerPosition);
+                }
+            }
+        }
+    }
+    
+    // Comprobamos si se necesita mostrar el mensaje de orientación en dispositivos móviles
+    function checkOrientation() {
+        const orientationMessage = document.getElementById('orientation-message');
+        
+        if (!orientationMessage || !window.deviceManager) return;
+        
+        if ((window.deviceManager.isMobile || window.deviceManager.isTablet) && 
+            window.innerWidth < window.innerHeight) {
+            orientationMessage.style.display = 'flex';
+            if (gameRunning && !gamePaused) {
+                pauseGame();
+            }
+        } else {
+            orientationMessage.style.display = 'none';
+            if (gameRunning && gamePaused) {
+                // Solo reanudar si estaba pausado por orientación
+                if (pauseOverlay.style.display !== 'flex') {
+                    resumeGame();
+                }
+            }
+        }
+    }
+    
+    // Comprobar orientación al iniciar y en cada cambio
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    
+    // Eventos de visibilidad para pausar/reanudar automáticamente
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && gameRunning && !gamePaused) {
+            pauseGame();
+        }
+    });
+    
+    // Forzar el renderizado del juego cuando la página se carga completamente
+    window.addEventListener('load', () => {
+        if (gameContainer) {
+            // Forzar un reflow
+            gameContainer.style.opacity = '0.99';
+            setTimeout(() => {
+                gameContainer.style.opacity = '1';
+            }, 10);
+        }
+    });
+});
+
+// Función global para cargar el ranking en diferentes contextos
+function loadRankingData(targetElement) {
+    if (window.loadRanking) {
+        window.loadRanking(targetElement);
+    } else {
+        console.error("Función loadRanking no disponible");
+        if (targetElement) {
+            targetElement.innerHTML = '<p class="ranking-error">No se pudo cargar el ranking</p>';
+        }
+    }
+}
