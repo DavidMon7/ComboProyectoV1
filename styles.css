@@ -1,4 +1,4 @@
-/* --- ESTILOS GENERALES --- */
+/* --- ESTILOS GENERALES OPTIMIZADOS --- */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
@@ -18,6 +18,53 @@
     --glow-accent: 0 0 15px rgba(255, 255, 0, 0.7);
     --glow-success: 0 0 15px rgba(0, 255, 0, 0.7);
     --glow-danger: 0 0 15px rgba(255, 0, 0, 0.7);
+    
+    /* Variables de tamaño responsive */
+    --game-scale: 1;
+    --font-scale: 1;
+    --animation-speed-modifier: 1;
+    
+    /* Márgenes y espaciado */
+    --spacing-sm: 5px;
+    --spacing-md: 10px;
+    --spacing-lg: 20px;
+    --spacing-xl: 30px;
+}
+
+/* Optimizaciones específicas para dispositivos */
+.device-mobile {
+    --game-scale: 0.8;
+    --font-scale: 0.85;
+}
+
+.device-tablet {
+    --game-scale: 0.9;
+    --font-scale: 0.9;
+}
+
+/* Optimizaciones para dispositivos de bajo rendimiento */
+.low-performance-mode .coin-animation,
+.low-performance-mode .obstacle-animation {
+    animation-duration: calc(3s * var(--animation-speed-modifier));
+}
+
+.low-performance-mode #gameContainer::after {
+    display: none; /* Desactivar efecto de escaneo */
+}
+
+/* Estilos base */
+*, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent; /* Eliminar highlight al tocar en móviles */
+}
+
+html {
+    /* Prevenir scrolling y rebote */
+    height: 100%;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+    -webkit-text-size-adjust: 100%; /* Prevenir ajuste auto de fuente en iOS */
 }
 
 body, html {
@@ -25,13 +72,13 @@ body, html {
     padding: 0; 
     width: 100%; 
     height: 100%;
-    overflow: hidden; 
     display: flex; 
     justify-content: center; 
     align-items: center;
     background: var(--color-bg);
     font-family: 'Press Start 2P', monospace;
     color: var(--color-text);
+    touch-action: manipulation; /* Mejora responsividad táctil */
 }
 
 /* --- CONTENEDOR DEL JUEGO --- */
@@ -57,6 +104,14 @@ body, html {
         0 0 5px rgba(0, 255, 255, 0.5);
     /* Animación de fondo */
     animation: gridMove 15s linear infinite;
+    /* Escalado responsive */
+    transform: scale(var(--game-scale));
+    transform-origin: center;
+}
+
+/* Ocultar juego en ciertas condiciones */
+.hidden-game {
+    display: none !important;
 }
 
 /* Efecto de "escaneo" que atraviesa la pantalla */
@@ -90,6 +145,225 @@ body, html {
     100% { left: 150%; }
 }
 
+/* Optimización para animaciones */
+@media (prefers-reduced-motion: reduce) {
+    #gameContainer, #gameContainer::after {
+        animation: none !important;
+    }
+    
+    .coin-animation, .obstacle-animation {
+        animation-duration: 5s !important;
+    }
+}
+
+/* --- ELEMENTOS DEL JUEGO --- */
+#player {
+    width: 40px;
+    height: 40px;
+    background-color: #007bff;
+    position: absolute;
+    left: 50px;
+    bottom: 20px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+    transition: background-color 0.2s;
+    z-index: 10;
+}
+
+/* Animaciones del jugador */
+.player-jump {
+    animation: jump-pulse 0.3s ease-out;
+}
+
+.player-double-jump {
+    animation: double-jump-pulse 0.3s ease-out;
+}
+
+@keyframes jump-pulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 123, 255, 0.7); }
+    50% { transform: scale(1.1); box-shadow: 0 0 15px rgba(0, 123, 255, 0.9); }
+    100% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 123, 255, 0.7); }
+}
+
+@keyframes double-jump-pulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 123, 255, 0.7); }
+    50% { transform: scale(1.2); box-shadow: 0 0 20px rgba(255, 0, 255, 0.9); }
+    100% { transform: scale(1); box-shadow: 0 0 10px rgba(0, 123, 255, 0.7); }
+}
+
+/* Efectos de salto y colisión */
+.jump-effect {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid rgba(0, 255, 255, 0.7);
+    animation: expand 0.3s ease-out forwards;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.hit-effect {
+    position: absolute;
+    width: 50px;
+    height: 50px;
+    background: radial-gradient(circle, rgba(255,0,0,0.7) 0%, rgba(255,0,0,0) 70%);
+    border-radius: 50%;
+    animation: hit-expand 0.3s ease-out forwards;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.powerup-effect {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: radial-gradient(circle, rgba(255,215,0,0.7) 0%, rgba(255,215,0,0) 70%);
+    border-radius: 50%;
+    animation: powerup-pulse 0.5s ease-out forwards;
+    z-index: 5;
+    pointer-events: none;
+}
+
+@keyframes expand {
+    0% { transform: scale(0.5); opacity: 0.7; }
+    100% { transform: scale(2); opacity: 0; }
+}
+
+@keyframes hit-expand {
+    0% { transform: scale(0.8); opacity: 0.8; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+
+@keyframes powerup-pulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.5); opacity: 0.6; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Obstáculos */
+.obstacle {
+    position: absolute;
+    background-color: #c62828;
+    bottom: 0;
+    border-radius: 4px 4px 0 0;
+    box-shadow: 0 0 10px rgba(198, 40, 40, 0.7);
+}
+
+/* Tipos de obstáculos */
+.obstacle-standard {
+    background-color: #c62828;
+}
+
+.obstacle-tall {
+    background-color: #ad1457;
+    height: 120px !important;
+    width: 30px !important;
+}
+
+.obstacle-wide {
+    background-color: #880e4f;
+    height: 40px !important;
+    width: 70px !important;
+}
+
+.obstacle-animation {
+    animation: move-left calc(3s * var(--animation-speed-modifier)) linear;
+}
+
+@keyframes move-left {
+    0% { left: 100%; }
+    100% { left: -100px; }
+}
+
+/* Monedas */
+.coin {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    z-index: 5;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+    animation: coin-pulse 1s infinite alternate;
+}
+
+.coin-green {
+    background-color: #4CAF50;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+}
+
+.coin-blue {
+    background-color: #2196F3;
+    box-shadow: 0 0 15px rgba(33, 150, 243, 0.7);
+}
+
+.coin-yellow {
+    background-color: #FFC107;
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.7);
+}
+
+.coin-animation {
+    animation: coin-float 3s linear infinite, coin-pulse 1s infinite alternate;
+}
+
+@keyframes coin-float {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+}
+
+@keyframes coin-pulse {
+    from { box-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+    to { box-shadow: 0 0 25px rgba(255, 255, 255, 0.8); }
+}
+
+/* Marcadores */
+#score, #timer, #combo {
+    position: absolute;
+    color: white;
+    font-size: calc(18px * var(--font-scale));
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+    z-index: 10;
+}
+
+#score {
+    top: 20px;
+    left: 20px;
+}
+
+#timer {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    transition: color 0.3s, transform 0.2s;
+}
+
+.timer-warning {
+    animation: pulse-warning 0.7s infinite alternate;
+}
+
+@keyframes pulse-warning {
+    from { transform: translateX(-50%) scale(1); }
+    to { transform: translateX(-50%) scale(1.1); }
+}
+
+#combo {
+    top: 60px;
+    left: 20px;
+    transition: transform 0.2s, color 0.2s;
+}
+
+.combo-highlight {
+    animation: combo-pulse 0.5s ease-in-out 3;
+    color: #FFC107 !important;
+}
+
+@keyframes combo-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
 /* --- PANTALLAS (REGISTRO, INICIO, RANKING) --- */
 .screen {
     position: absolute; 
@@ -104,13 +378,13 @@ body, html {
     justify-content: center;
     z-index: 20; 
     text-align: center; 
-    padding: 20px;
+    padding: calc(20px * var(--font-scale));
     box-sizing: border-box;
 }
 
 .screen h1 {
-    font-size: 36px;
-    margin-bottom: 30px;
+    font-size: calc(36px * var(--font-scale));
+    margin-bottom: calc(30px * var(--font-scale));
     color: var(--color-primary);
     text-shadow: 0 0 10px var(--color-primary), 0 0 20px var(--color-primary);
     animation: titlePulse 2s infinite alternate;
@@ -123,8 +397,8 @@ body, html {
 }
 
 .screen p {
-    font-size: 14px;
-    margin-bottom: 25px; 
+    font-size: calc(14px * var(--font-scale));
+    margin-bottom: calc(25px * var(--font-scale)); 
     line-height: 1.8; 
     max-width: 600px;
     color: #dddddd;
@@ -144,7 +418,7 @@ body, html {
     align-items: center;
     width: 100%;
     max-width: 500px;
-    padding: 30px;
+    padding: calc(30px * var(--font-scale));
     margin: 0 auto;
     background: rgba(0, 0, 0, 0.7);
     border: 2px solid var(--color-primary);
@@ -159,7 +433,7 @@ body, html {
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: calc(20px * var(--font-scale));
     width: 100%;
     position: relative;
 }
@@ -167,17 +441,17 @@ body, html {
 .form-group label {
     display: block;
     color: var(--color-primary);
-    margin-bottom: 8px;
-    font-size: 14px;
+    margin-bottom: calc(8px * var(--font-scale));
+    font-size: calc(14px * var(--font-scale));
     text-shadow: 0 0 5px var(--color-primary);
 }
 
 .form-group input[type="text"],
 .form-group input[type="email"] {
     width: 100%;
-    padding: 12px 15px;
+    padding: calc(12px * var(--font-scale)) calc(15px * var(--font-scale));
     font-family: 'Press Start 2P', monospace;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale));
     color: var(--color-primary);
     background-color: rgba(0, 0, 0, 0.6);
     border: 2px solid var(--color-primary);
@@ -194,25 +468,25 @@ body, html {
 
 .form-group input::placeholder {
     color: rgba(0, 255, 255, 0.5);
-    font-size: 12px;
+    font-size: calc(12px * var(--font-scale));
 }
 
 /* Estilo mejorado para el checkbox */
 .checkbox-container {
     display: flex;
     align-items: center;
-    margin: 15px 0;
+    margin: calc(15px * var(--font-scale)) 0;
 }
 
 .checkbox-container input[type="checkbox"] {
     appearance: none;
     -webkit-appearance: none;
-    width: 24px;
-    height: 24px;
+    width: calc(24px * var(--font-scale));
+    height: calc(24px * var(--font-scale));
     background-color: rgba(0, 0, 0, 0.6);
     border: 2px solid var(--color-primary);
     border-radius: 4px;
-    margin-right: 10px;
+    margin-right: calc(10px * var(--font-scale));
     cursor: pointer;
     position: relative;
     box-shadow: 0 0 5px rgba(0, 255, 255, 0.3);
@@ -230,12 +504,12 @@ body, html {
     top: 0;
     left: 6px;
     color: #000;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale));
     font-weight: bold;
 }
 
 .checkbox-container label {
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale));
     cursor: pointer;
     color: #fff;
 }
@@ -277,17 +551,17 @@ body, html {
     box-shadow: var(--glow-success), 0 0 5px rgba(0, 255, 0, 0.3) inset;
     border-radius: 8px;
     cursor: pointer;
-    margin-top: 15px;
+    margin-top: calc(15px * var(--font-scale));
     transition: all 0.3s ease;
     font-weight: bold;
     position: relative;
     overflow: hidden;
-    padding: 15px 30px;
+    padding: calc(15px * var(--font-scale)) calc(30px * var(--font-scale));
     font-family: 'Press Start 2P', monospace;
-    font-size: 16px;
+    font-size: calc(16px * var(--font-scale));
     text-transform: uppercase;
     letter-spacing: 2px;
-    min-width: 200px;
+    min-width: calc(200px * var(--font-scale));
 }
 
 .screen button::before,
@@ -330,10 +604,10 @@ body, html {
     background: rgba(0, 0, 0, 0.7);
     border: 2px solid var(--color-accent);
     border-radius: 5px;
-    padding: 10px 15px;
+    padding: calc(10px * var(--font-scale)) calc(15px * var(--font-scale));
     color: var(--color-accent);
     font-family: 'Press Start 2P', monospace;
-    font-size: 12px;
+    font-size: calc(12px * var(--font-scale));
     cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
@@ -368,7 +642,7 @@ body, html {
     position: relative;
     background-color: #0a0a0a;
     margin: 5% auto;
-    padding: 20px;
+    padding: calc(20px * var(--font-scale));
     border: 2px solid var(--color-accent);
     box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
     width: 80%;
@@ -388,7 +662,7 @@ body, html {
 .ranking-close-btn {
     color: var(--color-accent);
     float: right;
-    font-size: 28px;
+    font-size: calc(28px * var(--font-scale));
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
@@ -407,14 +681,14 @@ body, html {
     box-shadow: 0 0 10px rgba(255, 204, 0, 0.5), 0 0 5px rgba(255, 204, 0, 0.3) inset;
     border-radius: 8px;
     cursor: pointer;
-    margin-top: 15px;
+    margin-top: calc(15px * var(--font-scale));
     transition: all 0.3s ease;
     font-weight: bold;
-    padding: 10px 20px;
+    padding: calc(10px * var(--font-scale)) calc(20px * var(--font-scale));
     font-family: 'Press Start 2P', monospace;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale));
     display: block;
-    margin: 15px auto 0 auto;
+    margin: calc(15px * var(--font-scale)) auto 0 auto;
 }
 
 #closeRankingBtn:hover {
@@ -424,7 +698,7 @@ body, html {
 }
 
 #ranking {
-    margin-top: 20px;
+    margin-top: calc(20px * var(--font-scale));
     max-height: 350px;
     overflow-y: auto;
     width: 100%;
@@ -451,14 +725,15 @@ body, html {
     background-color: #1a1a1a;
     color: var(--color-primary);
     text-shadow: 0 0 5px var(--color-primary);
-    padding: 10px;
+    padding: calc(10px * var(--font-scale));
     border: 1px solid #333;
     position: sticky;
     top: 0;
+    z-index: 1;
 }
 
 #ranking td {
-    padding: 8px 10px;
+    padding: calc(8px * var(--font-scale)) calc(10px * var(--font-scale));
     border: 1px solid #333;
     color: #ffffff; /* Mayor contraste */
     text-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
@@ -476,25 +751,43 @@ body, html {
 }
 
 /* Top 3 jugadores destacados con mayor contraste */
-#ranking tr:nth-child(1) td {
+#ranking tr.rank-1 td {
     background-color: rgba(255, 215, 0, 0.3); /* Oro más contrastante */
     color: #ffd700;
     text-shadow: 0 0 5px #ffd700;
     font-weight: bold;
 }
 
-#ranking tr:nth-child(2) td {
+#ranking tr.rank-2 td {
     background-color: rgba(192, 192, 192, 0.3); /* Plata más contrastante */
     color: #e0e0e0;
     text-shadow: 0 0 5px #e0e0e0;
     font-weight: bold;
 }
 
-#ranking tr:nth-child(3) td {
+#ranking tr.rank-3 td {
     background-color: rgba(205, 127, 50, 0.3); /* Bronce más contrastante */
     color: #ffa54f;
     text-shadow: 0 0 5px #ffa54f;
     font-weight: bold;
+}
+
+/* Jugador actual en el ranking */
+#ranking tr.current-player td {
+    border: 2px solid var(--color-primary);
+    animation: current-player-pulse 2s infinite alternate;
+}
+
+@keyframes current-player-pulse {
+    from { border-color: var(--color-primary); }
+    to { border-color: var(--color-secondary); }
+}
+
+.player-position {
+    margin-top: calc(15px * var(--font-scale));
+    color: var(--color-primary);
+    font-size: calc(14px * var(--font-scale));
+    text-shadow: 0 0 5px var(--color-primary);
 }
 
 /* --- MODAL DE TÉRMINOS --- */
@@ -515,7 +808,7 @@ body, html {
     position: relative;
     background-color: #0a0a0a;
     margin: 5% auto;
-    padding: 20px;
+    padding: calc(20px * var(--font-scale));
     border: 2px solid var(--color-primary);
     box-shadow: var(--glow-primary);
     width: 80%;
@@ -529,7 +822,7 @@ body, html {
 .close-btn {
     color: var(--color-primary);
     float: right;
-    font-size: 28px;
+    font-size: calc(28px * var(--font-scale));
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
@@ -543,28 +836,28 @@ body, html {
 .terms-content {
     max-height: 50vh;
     overflow-y: auto;
-    padding: 10px;
-    margin-bottom: 20px;
+    padding: calc(10px * var(--font-scale));
+    margin-bottom: calc(20px * var(--font-scale));
     border: 1px solid #333;
     background-color: rgba(0, 0, 0, 0.3);
 }
 
 .terms-content p {
     color: #cccccc;
-    font-size: 12px;
+    font-size: calc(12px * var(--font-scale));
     line-height: 1.8;
-    margin-bottom: 15px;
+    margin-bottom: calc(15px * var(--font-scale));
 }
 
 #acceptTermsBtn {
     display: block;
     margin: 0 auto;
-    padding: 10px 20px;
+    padding: calc(10px * var(--font-scale)) calc(20px * var(--font-scale));
     background: #000000;
     color: var(--color-success);
     border: 2px solid var(--color-success);
     border-radius: 5px;
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale));
     cursor: pointer;
     transition: all 0.3s;
     font-family: 'Press Start 2P', monospace;
@@ -574,6 +867,48 @@ body, html {
     background: var(--color-success);
     color: #000000;
     box-shadow: 0 0 10px var(--color-success);
+}
+
+/* --- PAUSA OVERLAY --- */
+.pause-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    z-index: 50;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s;
+}
+
+.pause-content {
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: calc(30px * var(--font-scale));
+    border: 3px solid var(--color-secondary);
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+    animation: pulse-pause 2s infinite alternate;
+}
+
+.pause-content h2 {
+    color: var(--color-secondary);
+    font-size: calc(24px * var(--font-scale));
+    margin-bottom: calc(20px * var(--font-scale));
+    text-shadow: 0 0 10px var(--color-secondary);
+}
+
+.pause-content p {
+    color: white;
+    font-size: calc(16px * var(--font-scale));
+}
+
+@keyframes pulse-pause {
+    from { box-shadow: 0 0 20px rgba(255, 0, 255, 0.5); }
+    to { box-shadow: 0 0 30px rgba(255, 0, 255, 0.8); }
 }
 
 /* --- ORIENTACIÓN Y RESPONSIVE DESIGN --- */
@@ -594,10 +929,23 @@ body, html {
     font-family: 'Press Start 2P', monospace;
 }
 
+#orientation-message div {
+    padding: calc(20px * var(--font-scale));
+    max-width: 90%;
+}
+
+#orientation-message p {
+    font-size: calc(16px * var(--font-scale));
+    margin-bottom: calc(20px * var(--font-scale));
+    color: white;
+    text-shadow: 0 0 5px var(--color-primary);
+}
+
 #orientation-message .rotate-icon {
-    font-size: 50px;
-    margin: 20px;
+    font-size: calc(50px * var(--font-scale));
+    margin: calc(20px * var(--font-scale));
     animation: rotate 2s infinite linear;
+    color: var(--color-primary);
 }
 
 @keyframes rotate {
@@ -605,67 +953,13 @@ body, html {
     to { transform: rotate(90deg); }
 }
 
-/* --- MEDIA QUERIES --- */
-@media screen and (max-width: 768px) {
-    .screen h1 {
-        font-size: 24px;
-    }
-    
-    .screen p {
-        font-size: 12px;
-        max-width: 90%;
-    }
-    
-    .form-group {
-        width: 90%;
-    }
-    
-    .screen button, #registerButton {
-        padding: 12px 20px;
-        font-size: 14px;
-        min-width: 180px;
-    }
-    
-    .ranking-modal-content {
-        width: 90%;
-        padding: 15px;
-    }
-    
-    #rankingButton {
-        padding: 8px 12px;
-        font-size: 10px;
-    }
-    
-    /* Mostrar el mensaje de orientación solo en modo retrato */
-    @media (orientation: portrait) {
-        #orientation-message {
-            display: flex;
-        }
-        
-        #gameContainer {
-            display: none;
-        }
-    }
-}
-
-/* Soporte específico para iPhone */
-@supports (-webkit-touch-callout: none) {
-    #gameContainer {
-        height: -webkit-fill-available;
-    }
-    
-    body, html {
-        height: -webkit-fill-available;
-    }
-}
-
-/* Controles de sonido */
+/* Control de sonido */
 .sound-control {
     position: fixed;
     top: 20px;
     left: 20px;
-    width: 40px;
-    height: 40px;
+    width: calc(40px * var(--font-scale));
+    height: calc(40px * var(--font-scale));
     background: rgba(0, 0, 0, 0.7);
     border: 2px solid var(--color-primary);
     border-radius: 50%;
@@ -684,8 +978,135 @@ body, html {
 }
 
 .sound-icon {
-    font-size: 20px;
+    font-size: calc(20px * var(--font-scale));
     color: var(--color-primary);
     text-shadow: 0 0 5px var(--color-primary);
     font-style: normal;
+}
+
+.sound-control.muted {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+}
+
+.sound-control.muted .sound-icon {
+    color: var(--color-danger);
+    text-shadow: 0 0 5px var(--color-danger);
+}
+
+/* --- MEDIA QUERIES --- */
+@media screen and (max-width: 768px) {
+    :root {
+        --game-scale: 0.8;
+        --font-scale: 0.85;
+    }
+    
+    .screen h1 {
+        font-size: calc(24px * var(--font-scale));
+    }
+    
+    .screen p {
+        font-size: calc(12px * var(--font-scale));
+        max-width: 90%;
+    }
+    
+    .form-group {
+        width: 90%;
+    }
+    
+    .screen button, #registerButton {
+        padding: calc(12px * var(--font-scale)) calc(20px * var(--font-scale));
+        font-size: calc(14px * var(--font-scale));
+        min-width: calc(180px * var(--font-scale));
+    }
+    
+    .ranking-modal-content {
+        width: 90%;
+        padding: calc(15px * var(--font-scale));
+    }
+    
+    #rankingButton {
+        padding: calc(8px * var(--font-scale)) calc(12px * var(--font-scale));
+        font-size: calc(10px * var(--font-scale));
+    }
+    
+    /* Ajustes para dispositivos móviles */
+    .mobile-instructions {
+        display: block;
+        font-weight: bold;
+        color: var(--color-primary);
+    }
+    
+    /* Verificar orientación */
+    @media (orientation: portrait) {
+        #orientation-message {
+            display: flex;
+        }
+        
+        #gameContainer {
+            display: none;
+        }
+    }
+}
+
+@media screen and (max-width: 480px) {
+    :root {
+        --game-scale: 0.7;
+        --font-scale: 0.75;
+    }
+    
+    .form-container {
+        padding: calc(15px * var(--font-scale));
+    }
+    
+    #ranking {
+        max-height: 250px;
+    }
+    
+    .screen h1 {
+        font-size: calc(20px * var(--font-scale));
+    }
+}
+
+/* Soporte específico para iPhone */
+@supports (-webkit-touch-callout: none) {
+    #gameContainer {
+        height: -webkit-fill-available;
+    }
+    
+    body, html {
+        height: -webkit-fill-available;
+    }
+    
+    /* Arreglar problema de 100vh en Safari móvil */
+    .screen, .modal, .ranking-modal, #orientation-message {
+        height: -webkit-fill-available;
+    }
+}
+
+/* Detección de pantalla táctil */
+.touch-device .screen button,
+.touch-device #registerButton,
+.touch-device #closeRankingBtn,
+.touch-device #acceptTermsBtn {
+    /* Aumentar área táctil */
+    padding: calc((15px * var(--font-scale)) + 5px) calc((30px * var(--font-scale)) + 5px);
+}
+
+/* Optimizaciones para reducir animaciones */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .screen h1,
+    .form-container,
+    #ranking table,
+    .obstacle-animation,
+    .coin-animation {
+        animation: none !important;
+    }
 }
