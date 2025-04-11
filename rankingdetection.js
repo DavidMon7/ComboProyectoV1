@@ -8,8 +8,25 @@ const RANKING_API_URL = 'https://script.google.com/macros/s/AKfycbzBUuj5qYyp9Pnn
 
 /**
  * Carga el ranking desde la API de Google Sheets
+ * @param {HTMLElement} targetElement - Elemento donde mostrar el ranking (opcional)
  */
-function loadRanking() {
+function loadRanking(targetElement) {
+    // Determinar elemento objetivo
+    let rankingDiv = targetElement;
+    if (!rankingDiv) {
+        // Intentar encontrar el elemento de ranking en el contexto actual
+        if (document.getElementById('ranking')) {
+            rankingDiv = document.getElementById('ranking');
+        } else if (document.getElementById('rankingModalData')) {
+            rankingDiv = document.getElementById('rankingModalData');
+        }
+    }
+    
+    if (!rankingDiv) {
+        console.error("No se encontró un elemento para mostrar el ranking");
+        return;
+    }
+    
     // Mostrar mensaje de carga
     rankingDiv.innerHTML = '<div class="loading-ranking"><div class="spinner"></div><p>Cargando ranking...</p></div>';
     
@@ -22,14 +39,14 @@ function loadRanking() {
             return response.json();
         })
         .then(data => {
-            displayRanking(data);
+            displayRanking(data, rankingDiv);
         })
         .catch(error => {
             console.error('Error al cargar el ranking:', error);
             
             // Cargar datos locales como fallback
             const localRankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
-            displayRanking(localRankings);
+            displayRanking(localRankings, rankingDiv);
             
             // Mostrar mensaje de error
             const errorMsg = document.createElement('p');
@@ -41,12 +58,32 @@ function loadRanking() {
 
 /**
  * Muestra el ranking en el DOM
+ * @param {Array} data - Datos del ranking
+ * @param {HTMLElement} target - Elemento donde mostrar el ranking
  */
-function displayRanking(data) {
+function displayRanking(data, target) {
+    if (!target) {
+        console.error("No se proporcionó un elemento para mostrar el ranking");
+        return;
+    }
+    
     // Si no hay datos, mostrar mensaje
     if (!data || data.length === 0) {
-        rankingDiv.innerHTML = '<div class="empty-ranking"><p>¡Sé el primero en registrar tu puntuación!</p></div>';
+        target.innerHTML = '<div class="empty-ranking"><p>¡Sé el primero en registrar tu puntuación!</p></div>';
         return;
+    }
+    
+    // Obtener nombre y email del jugador actual
+    let playerName = '';
+    let playerEmail = '';
+    
+    // Intentar obtener datos del jugador desde localStorage o variables globales
+    if (localStorage.getItem('playerName') && localStorage.getItem('playerEmail')) {
+        playerName = localStorage.getItem('playerName');
+        playerEmail = localStorage.getItem('playerEmail');
+    } else if (window.playerName && window.playerEmail) {
+        playerName = window.playerName;
+        playerEmail = window.playerEmail;
     }
     
     // CORRECCIÓN: Ordenar de mayor a menor puntuación
@@ -101,7 +138,7 @@ function displayRanking(data) {
     rankingHTML += '</tbody></table>';
     
     // Actualizar DOM
-    rankingDiv.innerHTML = rankingHTML;
+    target.innerHTML = rankingHTML;
     
     // Mostrar posición del jugador actual si no está en el top 20
     if (currentPlayerIndex === -1 && playerName) {
@@ -115,19 +152,31 @@ function displayRanking(data) {
             const playerPosition = document.createElement('p');
             playerPosition.className = 'player-position';
             playerPosition.textContent = `Tu posición: ${fullPlayerIndex + 1} de ${sortedData.length}`;
-            rankingDiv.appendChild(playerPosition);
-        } else if (score > 0) {
+            target.appendChild(playerPosition);
+        } else {
             // Mensaje para animar a jugar
-            const playerPosition = document.createElement('p');
-            playerPosition.className = 'player-position';
-            playerPosition.textContent = `¡Tu puntuación se registrará al finalizar la partida!`;
-            rankingDiv.appendChild(playerPosition);
+            let currentScore = 0;
+            if (window.score !== undefined) {
+                currentScore = window.score;
+            } else if (document.getElementById('score')) {
+                currentScore = parseInt(document.getElementById('score').textContent) || 0;
+            }
+            
+            if (currentScore > 0) {
+                const playerPosition = document.createElement('p');
+                playerPosition.className = 'player-position';
+                playerPosition.textContent = `¡Tu puntuación se registrará al finalizar la partida!`;
+                target.appendChild(playerPosition);
+            }
         }
     }
 }
 
 /**
  * Guarda la puntuación en la API y localmente
+ * @param {string} name - Nombre del jugador
+ * @param {string} email - Email del jugador
+ * @param {number} score - Puntuación
  */
 function saveScore(name, email, score) {
     // Validar datos
@@ -191,15 +240,47 @@ function saveScore(name, email, score) {
     .then(response => {
         console.log("Puntuación enviada a la API");
         // La API devuelve no-cors, así que no podemos verificar el estado
-        loadRanking(); // Recargar ranking
+        // Determinar dónde mostrar el ranking
+        const rankingElement = document.getElementById('ranking') || document.getElementById('rankingModalData');
+        loadRanking(rankingElement); // Recargar ranking
     })
     .catch(error => {
         console.error('Error al guardar la puntuación en la API:', error);
         console.log("Usando datos locales como fallback");
-        loadRanking(); // Cargar de todos modos con datos locales
+        const rankingElement = document.getElementById('ranking') || document.getElementById('rankingModalData');
+        loadRanking(rankingElement); // Cargar de todos modos con datos locales
     });
 }
 
 // Exportar funciones para uso global
 window.loadRanking = loadRanking;
 window.saveScore = saveScore;
+window.displayRanking = displayRanking;
+
+// Cargar ranking en rankingModalData cuando se abre el modal
+document.addEventListener('DOMContentLoaded', () => {
+    const rankingButton = document.getElementById('rankingButton');
+    const rankingModal = document.getElementById('rankingModal');
+    const rankingModalData = document.getElementById('rankingModalData');
+    const rankingCloseBtn = document.querySelector('.ranking-close-btn');
+    const closeRankingBtn = document.getElementById('closeRankingBtn');
+    
+    if (rankingButton && rankingModal && rankingModalData) {
+        rankingButton.addEventListener('click', () => {
+            rankingModal.style.display = 'block';
+            loadRanking(rankingModalData);
+        });
+        
+        if (rankingCloseBtn) {
+            rankingCloseBtn.addEventListener('click', () => {
+                rankingModal.style.display = 'none';
+            });
+        }
+        
+        if (closeRankingBtn) {
+            closeRankingBtn.addEventListener('click', () => {
+                rankingModal.style.display = 'none';
+            });
+        }
+    }
+});
