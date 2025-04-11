@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let obstacles = [];
     let coins = [];
     let gameRunning = false;
+    let gamePaused = false;  // Nueva variable para controlar el estado de pausa
     let obstacleInterval;
     let coinInterval;
     let timerInterval;
@@ -57,6 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let baseSpeed = 5; // Velocidad base para obstáculos
     let maxObstacles = 5; // Limitar número de obstáculos
     let maxCoins = 7; // Limitar número de monedas
+    let pauseOverlay = null; // Referencia al overlay de pausa
 
     // Mostrar instrucciones específicas para móviles si es necesario
     if (window.deviceManager && (window.deviceManager.isMobile || window.deviceManager.isTablet)) {
@@ -71,8 +73,65 @@ document.addEventListener('DOMContentLoaded', () => {
     // Asegurar que el botón de sonido tenga su evento
     if (muteButton && soundManager) {
         muteButton.addEventListener('click', () => {
-            soundManager.toggleMute();
+            soundManager.initSoundFromUserInteraction();
+        }
+    });
+
+    // Términos y condiciones
+    openTermsBtn.addEventListener('click', event => {
+        event.preventDefault();
+        termsModal.style.display = 'flex';
+        
+        if (soundManager) {
+            soundManager.playSound('menu');
+        }
+    });
+
+    acceptTermsBtn.addEventListener('click', () => {
+        termsCheckbox.checked = true;
+        termsModal.style.display = 'none';
+        
+        if (soundManager) {
+            soundManager.playSound('menu');
+        }
+    });
+
+    document.querySelector('.close-btn').addEventListener('click', () => {
+        termsModal.style.display = 'none';
+    });
+
+    // Botón de ranking
+    rankingButton.addEventListener('click', () => {
+        rankingModal.style.display = 'flex';
+        loadRanking();
+        
+        if (soundManager) {
+            soundManager.playSound('menu');
+        }
+    });
+
+    rankingCloseBtn.addEventListener('click', () => {
+        rankingModal.style.display = 'none';
+    });
+
+    // Botón adicional para cerrar ranking
+    const closeRankingBtn = document.getElementById('closeRankingBtn');
+    if (closeRankingBtn) {
+        closeRankingBtn.addEventListener('click', () => {
+            rankingModal.style.display = 'none';
+            
+            if (soundManager) {
+                soundManager.playSound('menu');
+            }
         });
+    }dManager.toggleMute();
+        });
+    }
+
+    // CORRECCIÓN: Inicializar la posición del jugador explícitamente
+    if (player) {
+        player.style.left = '50px';
+        player.style.bottom = '20px';
     }
 
     // Funciones de utilidad
@@ -84,6 +143,8 @@ document.addEventListener('DOMContentLoaded', () => {
      * Detección de colisiones mejorada con tolerancia para reducir falsos positivos
      */
     function checkCollision(element1, element2, tolerance = 0.8) {
+        if (!element1 || !element2) return false;
+        
         const rect1 = element1.getBoundingClientRect();
         const rect2 = element2.getBoundingClientRect();
 
@@ -136,7 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
             floatingText.style.opacity = '0';
         });
         
-        setTimeout(() => floatingText.remove(), 1500);
+        setTimeout(() => {
+            if (floatingText.parentNode) {
+                floatingText.remove();
+            }
+        }, 1500);
     }
 
     /**
@@ -163,7 +228,11 @@ document.addEventListener('DOMContentLoaded', () => {
             jumpEffect.style.bottom = player.style.bottom;
             gameContainer.appendChild(jumpEffect);
             
-            setTimeout(() => jumpEffect.remove(), 300);
+            setTimeout(() => {
+                if (jumpEffect.parentNode) {
+                    jumpEffect.remove();
+                }
+            }, 300);
             
             if (soundManager) {
                 soundManager.playSound('jump');
@@ -175,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Genera obstáculos con comportamiento variado
      */
     function spawnObstacle() {
-        if (!gameRunning) return;
+        if (!gameRunning || gamePaused) return;
         
         // Limitar número de obstáculos para mejor rendimiento
         if (document.querySelectorAll('.obstacle').length >= maxObstacles) {
@@ -228,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Genera monedas con diferentes patrones de movimiento
      */
     function spawnCoin() {
-        if (!gameRunning) return;
+        if (!gameRunning || gamePaused) return;
         
         // Limitar número de monedas para mejor rendimiento
         if (document.querySelectorAll('.coin').length >= maxCoins) {
@@ -287,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Actualización del juego optimizada con delta time para consistencia
      */
     function updateGame(timestamp) {
-        if (!gameRunning) return;
+        if (!gameRunning || gamePaused) return;
         
         // Cálculo de delta time para animaciones consistentes
         const deltaTime = timestamp - lastFrameTime;
@@ -329,6 +398,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Actualizar obstáculos
         obstacles = obstacles.filter(obstacle => {
+            if (!obstacle.element || !obstacle.element.parentNode) return false;
+            
             // CORRECCIÓN: Usar velocity y deltaTime para mover obstáculos de forma consistente
             obstacle.x -= obstacle.speed * timeScale;
             obstacle.element.style.left = `${obstacle.x}px`;
@@ -365,15 +436,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 hitEffect.style.top = obstacle.element.style.top;
                 gameContainer.appendChild(hitEffect);
                 
-                setTimeout(() => hitEffect.remove(), 300);
+                setTimeout(() => {
+                    if (hitEffect.parentNode) {
+                        hitEffect.remove();
+                    }
+                }, 300);
                 
-                obstacle.element.remove();
+                if (obstacle.element.parentNode) {
+                    obstacle.element.remove();
+                }
                 return false;
             }
             
             // CORRECCIÓN: Mejorar detección del límite de pantalla para eliminar obstáculos
             if (obstacle.x < -100) {
-                obstacle.element.remove();
+                if (obstacle.element.parentNode) {
+                    obstacle.element.remove();
+                }
                 return false;
             }
             
@@ -382,6 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // CORRECCIÓN: Movimiento de monedas mejorado
         coins = coins.filter(coin => {
+            if (!coin.element || !coin.element.parentNode) return false;
+            
             // Mover moneda con velocidad consistente
             coin.x -= coin.speed * timeScale;
             
@@ -432,7 +513,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             powerupEffect.style.left = coin.x + 'px';
                             powerupEffect.style.top = coin.y + 'px';
                             gameContainer.appendChild(powerupEffect);
-                            setTimeout(() => powerupEffect.remove(), 500);
+                            setTimeout(() => {
+                                if (powerupEffect.parentNode) {
+                                    powerupEffect.remove();
+                                }
+                            }, 500);
                         }
                         break;
                 }
@@ -469,13 +554,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     setTimeout(() => comboDisplay.classList.remove('combo-highlight'), 1000);
                 }
                 
-                coin.element.remove();
+                if (coin.element.parentNode) {
+                    coin.element.remove();
+                }
                 return false;
             }
             
             // CORRECCIÓN: Mejorar eliminación de monedas fuera de pantalla
             if (coin.x < -50) {
-                coin.element.remove();
+                if (coin.element.parentNode) {
+                    coin.element.remove();
+                }
                 return false;
             }
             
@@ -515,6 +604,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Reiniciar variables del juego
         gameRunning = true;
+        gamePaused = false;
         playerY = 20;
         playerSpeedY = 0;
         score = 0;
@@ -536,12 +626,18 @@ document.addEventListener('DOMContentLoaded', () => {
         timerDisplay.classList.remove('timer-warning');
         
         // Limpiar elementos previos
-        document.querySelectorAll('.obstacle, .coin, .hit-effect, .jump-effect, .powerup-effect').forEach(el => el.remove());
+        document.querySelectorAll('.obstacle, .coin, .hit-effect, .jump-effect, .powerup-effect').forEach(el => {
+            if (el.parentNode) {
+                el.remove();
+            }
+        });
         
         // Resetear jugador
         player.style.backgroundColor = '#007bff';
         player.style.bottom = `${playerY}px`;
+        player.style.left = '50px'; // CORRECCIÓN: Asegurar posición X correcta
         player.classList.remove('player-jump', 'player-double-jump');
+        player.style.display = 'block'; // CORRECCIÓN: Asegurar que el jugador sea visible
         
         // Configurar intervalos
         clearInterval(obstacleInterval);
@@ -572,6 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function endGame() {
         gameRunning = false;
+        gamePaused = false;
         
         // Detener animaciones e intervalos
         if (requestId) {
@@ -600,20 +697,118 @@ document.addEventListener('DOMContentLoaded', () => {
             loadRanking();
         }
     }
+    
+    /**
+     * Pausa el juego
+     */
+    function pauseGame() {
+        if (!gameRunning || gamePaused) return;
+        
+        gamePaused = true;
+        
+        // Pausar música
+        if (soundManager) {
+            soundManager.pauseSound('background');
+        }
+        
+        // Mostrar overlay de pausa
+        showPauseOverlay();
+    }
+    
+    /**
+     * Reanuda el juego
+     */
+    function resumeGame() {
+        if (!gamePaused) return;
+        
+        gamePaused = false;
+        gameRunning = true;
+        
+        // Ocultar overlay de pausa
+        if (pauseOverlay) {
+            pauseOverlay.style.display = 'none';
+        }
+        
+        // Reanudar música
+        if (soundManager) {
+            soundManager.playSound('background');
+        }
+        
+        // Reiniciar bucle del juego
+        lastFrameTime = performance.now();
+        requestId = requestAnimationFrame(updateGame);
+    }
+    
+    /**
+     * Muestra el overlay de pausa con botones para continuar o salir
+     */
+    function showPauseOverlay() {
+        // Crear overlay de pausa si no existe
+        if (!pauseOverlay) {
+            pauseOverlay = document.createElement('div');
+            pauseOverlay.id = 'pauseOverlay';
+            pauseOverlay.className = 'pause-overlay';
+            pauseOverlay.innerHTML = `
+                <div class="pause-content">
+                    <h2>Juego en Pausa</h2>
+                    <p>El juego está en pausa.</p>
+                    <div class="pause-buttons">
+                        <button id="resumeButton" class="pause-button">Continuar</button>
+                        <button id="exitPauseButton" class="pause-button secondary">Salir</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(pauseOverlay);
+            
+            // Evento para el botón de continuar
+            const resumeButton = document.getElementById('resumeButton');
+            if (resumeButton) {
+                resumeButton.addEventListener('click', () => {
+                    resumeGame();
+                });
+            }
+            
+            // Evento para el botón de salir
+            const exitPauseButton = document.getElementById('exitPauseButton');
+            if (exitPauseButton) {
+                exitPauseButton.addEventListener('click', () => {
+                    // Ocultar pausa y mostrar pantalla de inicio
+                    pauseOverlay.style.display = 'none';
+                    gamePaused = false;
+                    gameRunning = false;
+                    startScreen.style.display = 'flex';
+                    
+                    // Detener música
+                    if (soundManager) {
+                        soundManager.pauseSound('background');
+                    }
+                });
+            }
+        }
+        
+        pauseOverlay.style.display = 'flex';
+    }
 
     // ----- EVENTOS DEL JUEGO -----
     
     // Control de teclado
     document.addEventListener('keydown', event => {
-        if (event.code === 'Space' && gameRunning) {
+        if (event.code === 'Space' && gameRunning && !gamePaused) {
             event.preventDefault(); // Evitar scroll en la página
             jump();
+        } else if (event.code === 'Escape' || event.code === 'KeyP') {
+            // Alternar pausa con Escape o P
+            if (gameRunning && !gamePaused) {
+                pauseGame();
+            } else if (gamePaused) {
+                resumeGame();
+            }
         }
     });
 
     // Control táctil
     gameContainer.addEventListener('touchstart', event => {
-        if (gameRunning) {
+        if (gameRunning && !gamePaused) {
             event.preventDefault(); // Prevenir zoom
             jump();
         }
@@ -683,195 +878,4 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Intentar iniciar audio si existe soundManager
         if (soundManager && typeof soundManager.initSoundFromUserInteraction === 'function') {
-            soundManager.initSoundFromUserInteraction();
-        }
-    });
-
-    // Términos y condiciones
-    openTermsBtn.addEventListener('click', event => {
-        event.preventDefault();
-        termsModal.style.display = 'flex';
-        
-        if (soundManager) {
-            soundManager.playSound('menu');
-        }
-    });
-
-    acceptTermsBtn.addEventListener('click', () => {
-        termsCheckbox.checked = true;
-        termsModal.style.display = 'none';
-        
-        if (soundManager) {
-            soundManager.playSound('menu');
-        }
-    });
-
-    document.querySelector('.close-btn').addEventListener('click', () => {
-        termsModal.style.display = 'none';
-    });
-
-    // Botón de ranking
-    rankingButton.addEventListener('click', () => {
-        rankingModal.style.display = 'flex';
-        loadRanking();
-        
-        if (soundManager) {
-            soundManager.playSound('menu');
-        }
-    });
-
-    rankingCloseBtn.addEventListener('click', () => {
-        rankingModal.style.display = 'none';
-    });
-
-    // Botón adicional para cerrar ranking
-    const closeRankingBtn = document.getElementById('closeRankingBtn');
-    if (closeRankingBtn) {
-        closeRankingBtn.addEventListener('click', () => {
-            rankingModal.style.display = 'none';
-            
-            if (soundManager) {
-                soundManager.playSound('menu');
-            }
-        });
-    }
-
-    // ----- INICIALIZACIÓN -----
-    
-    // Cargar datos guardados de sesiones anteriores
-    const savedName = localStorage.getItem('playerName');
-    const savedEmail = localStorage.getItem('playerEmail');
-    
-    if (savedName && savedEmail) {
-        // Prellenar formulario
-        const nameInput = document.getElementById('playerName');
-        const emailInput = document.getElementById('playerEmail');
-        
-        if (nameInput) nameInput.value = savedName;
-        if (emailInput) emailInput.value = savedEmail;
-        
-        // Opcionalmente, puedes iniciar sesión automáticamente
-        // playerName = savedName;
-        // playerEmail = savedEmail;
-        // registerScreen.style.display = 'none';
-        // startScreen.style.display = 'flex';
-    }
-    
-    // Sistema de detección de dispositivo
-    window.addEventListener('load', () => {
-        // Si ya existe un gestor de dispositivos, usar sus métodos
-        if (window.deviceManager) {
-            window.deviceManager.checkOrientation();
-            window.deviceManager.adjustGameContainer();
-        } else {
-            // Verificar orientación manualmente si no hay gestor
-            checkOrientation();
-        }
-    });
-    
-    // Función simple de verificar orientación como fallback
-    function checkOrientation() {
-        const orientationMessage = document.getElementById('orientation-message');
-        
-        if (window.innerWidth < window.innerHeight) {
-            if (orientationMessage) {
-                orientationMessage.style.display = 'flex';
-            }
-            gameRunning = false;
-        } else {
-            if (orientationMessage) {
-                orientationMessage.style.display = 'none';
-            }
-            if (playerName && document.visibilityState === 'visible') {
-                gameRunning = true;
-            }
-        }
-    }
-    
-    // Manejar cambios de visibilidad de la página
-    document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            // Pausar juego si está en segundo plano
-            if (gameRunning) {
-                gameRunning = false;
-                
-                // Pausar música
-                if (soundManager) {
-                    soundManager.pauseSound('background');
-                }
-            }
-        } else {
-            // Mostrar diálogo de "Juego en pausa" cuando regresa
-            if (playerName && !gameRunning && startScreen.style.display === 'none' && rankingDisplay.style.display === 'none') {
-                // Crear overlay de pausa si no existe
-                let pauseOverlay = document.getElementById('pauseOverlay');
-                
-                if (!pauseOverlay) {
-                    pauseOverlay = document.createElement('div');
-                    pauseOverlay.id = 'pauseOverlay';
-                    pauseOverlay.className = 'pause-overlay';
-                    pauseOverlay.innerHTML = `
-                        <div class="pause-content">
-                            <h2>Juego en Pausa</h2>
-                            <p>¡Toca para Continuar!</p>
-                        </div>
-                    `;
-                    document.body.appendChild(pauseOverlay);
-                    
-                    // Evento para reanudar
-                    pauseOverlay.addEventListener('click', () => {
-                        gameRunning = true;
-                        pauseOverlay.style.display = 'none';
-                        
-                        // Reanudar música
-                        if (soundManager) {
-                            soundManager.playSound('background');
-                        }
-                        
-                        // Reiniciar bucle del juego
-                        lastFrameTime = performance.now();
-                        requestId = requestAnimationFrame(updateGame);
-                    });
-                }
-                
-                pauseOverlay.style.display = 'flex';
-            }
-        }
-    });
-    
-    // Verificar cambios de tamaño de ventana
-    window.addEventListener('resize', () => {
-        if (window.deviceManager) {
-            window.deviceManager.handleResize();
-        } else {
-            checkOrientation();
-        }
-    });
-    
-    // Prevenir zoom en móviles al doble tap
-    document.addEventListener('dblclick', function(e) {
-        e.preventDefault();
-    }, { passive: false });
-    
-    // Inicialización adicional para móviles
-    if (('ontouchstart' in window) || window.DocumentTouch && document instanceof DocumentTouch) {
-        document.body.classList.add('touch-device');
-        
-        // Asegurarse que las instrucciones móviles estén visibles
-        const mobileInstructions = document.querySelectorAll('.mobile-instructions');
-        mobileInstructions.forEach(el => {
-            el.style.display = 'block';
-        });
-    }
-    
-    // Exponer funciones para módulos externos
-    window.spawnObstacle = spawnObstacle;
-    window.spawnCoin = spawnCoin;
-    window.jump = jump;
-    
-    // Exponer variables para acceso desde módulos externos
-    window.baseSpeed = baseSpeed;
-    window.maxObstacles = maxObstacles;
-    window.maxCoins = maxCoins;
-    window.gravity = gravity;
-});
+            soun
