@@ -576,18 +576,22 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Guardar puntuación en el servidor
      */
-    function saveScore(name, email, score) {
-        // Simular guardado si estamos en modo local
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.log(`Simulando envío de puntuación: ${name}, ${email}, ${score}`);
-            
-            // Guardar en localStorage como fallback
-            const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
-            rankings.push({ name, email, score, date: new Date().toISOString() });
-            localStorage.setItem('gameRankings', JSON.stringify(rankings));
-            loadRanking();
-        });
+function saveScore(name, email, score) {
+    // Simular guardado si estamos en modo local
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        console.log(`Simulando envío de puntuación: ${name}, ${email}, ${score}`);
+        
+        // Guardar en localStorage como fallback
+        const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
+        rankings.push({ name, email, score, date: new Date().toISOString() });
+        localStorage.setItem('gameRankings', JSON.stringify(rankings));
+        
+        setTimeout(loadRanking, 500);
+        return;
     }
+    
+    // Resto del código...
+}
 
     /**
      * Cargar ranking de puntuaciones
