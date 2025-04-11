@@ -529,9 +529,16 @@ class SoundManager {
      */
     createAudioControls() {
         // Verificar si ya existe el botón de silenciar
-        if (document.getElementById('muteButton')) return;
+        if (document.getElementById('muteButton')) {
+            // Si existe, solo asegurarse de que tenga el evento click
+            const muteButton = document.getElementById('muteButton');
+            muteButton.addEventListener('click', () => {
+                this.toggleMute();
+            });
+            return;
+        }
         
-        // Crear botón de silenciar
+        // Crear botón de silenciar (este código no debería ejecutarse si ya existe en HTML)
         const muteButton = document.createElement('div');
         muteButton.id = 'muteButton';
         muteButton.className = 'sound-control' + (this.isMuted ? ' muted' : '');
