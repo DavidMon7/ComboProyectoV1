@@ -9,19 +9,14 @@
     <meta name="description" content="Cuadrado Saltarín Combo: Juego de plataformas retro con sistema de puntuación y ranking">
     <title>Cuadrado Saltarín Combo + Ranking</title>
     
+    <!-- Precargar fuentes -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="styles.css">
-    
     <!-- Precargar recursos -->
     <link rel="preload" href="styles.css" as="style">
-    <link rel="preload" href="device-detection.js" as="script">
-    <link rel="preload" href="sound-manager.js" as="script">
-    <link rel="preload" href="script.js" as="script">
-    <link rel="preload" href="ranking-integration.js" as="script">
-    <link rel="preload" href="game-fixer.js" as="script">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <main>
@@ -47,7 +42,7 @@
                         <input type="checkbox" id="termsCheckbox" required>
                         <label for="termsCheckbox">Acepto los <a href="#" id="openTermsBtn">términos y condiciones</a></label>
                     </div>
-                    <button type="submit" id="registerButton" aria-label="Registrarme">Registrarme</button>
+                    <button type="submit" id="registerButton" aria-label="Registrarme">REGISTRARME</button>
                 </form>
             </div>
 
@@ -99,19 +94,24 @@
         </div>
     </main>
 
+    <!-- Botón de ranking separado del flujo principal del juego -->
     <div id="rankingButton" class="ranking-btn">
         <span>VER RANKING</span>
     </div>
     
+    <!-- Modal del ranking separado -->
     <div id="rankingModal" class="ranking-modal">
         <div class="ranking-modal-content" id="rankingModalContent">
             <span class="ranking-close-btn">&times;</span>
             <h2>Ranking de Jugadores</h2>
-            <p>Cargando ranking...</p>
+            <div id="rankingModalData">
+                <p>Cargando ranking...</p>
+            </div>
             <button id="closeRankingBtn">CERRAR RANKING</button>
         </div>
     </div>
     
+    <!-- Mensaje de orientación para dispositivos móviles -->
     <div id="orientation-message">
         <div>
             <p>Por favor, gira tu dispositivo para jugar</p>
@@ -119,10 +119,15 @@
         </div>
     </div>
     
+    <!-- Overlay de pausa -->
     <div id="pauseOverlay" class="pause-overlay">
         <div class="pause-content">
             <h2>Juego en Pausa</h2>
             <p>¡Toca para Continuar!</p>
+            <div class="pause-buttons">
+                <button id="resumeButton" class="pause-button">Continuar</button>
+                <button id="exitPauseButton" class="pause-button secondary">Salir</button>
+            </div>
         </div>
     </div>
     
@@ -131,11 +136,11 @@
         <span class="sound-icon">🔊</span>
     </div>
     
-    <!-- Carga de scripts optimizada: asegurarse de que se carguen en este orden -->
+    <!-- Carga de scripts optimizada - asegurarse de que se carguen en este orden -->
     <script src="device-detection.js"></script>
     <script src="sound-manager.js"></script>
-    <script src="script.js"></script>
     <script src="ranking-integration.js"></script>
+    <script src="script.js"></script>
     <script src="game-fixer.js"></script>
 </body>
 </html>
