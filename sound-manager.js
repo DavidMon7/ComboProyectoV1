@@ -5,8 +5,6 @@
  * - Soporte para múltiples formatos
  * - Sistema de fallback para navegadores antiguos
  * - Control de volumen independiente para música y efectos
- * - Soporte para silenciar automáticamente en segundo plano
- * - Sistema de pool de sonidos para mejor rendimiento
  */
 class SoundManager {
     constructor() {
@@ -47,7 +45,7 @@ class SoundManager {
             if (window.AudioContext || window.webkitAudioContext) {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
-                // CORRECCIÓN: Asegurar que el contexto está corriendo
+                // Asegurar que el contexto está corriendo
                 if (this.audioContext.state === 'suspended') {
                     const resumeAudio = () => {
                         this.audioContext.resume();
@@ -216,7 +214,6 @@ class SoundManager {
             }
         }
     }
-    
     /**
      * Carga un sonido como buffer para Web Audio API
      */
@@ -516,7 +513,6 @@ class SoundManager {
             this.mute();
         }
     }
-    
     /**
      * Maneja cambios de visibilidad de la página
      */
@@ -616,7 +612,14 @@ class SoundManager {
         if (document.getElementById('muteButton')) {
             // Si existe, solo asegurarse de que tenga el evento click
             const muteButton = document.getElementById('muteButton');
-            muteButton.addEventListener('click', () => {
+            
+            // Eliminar eventos existentes para evitar duplicados
+            const newMuteButton = muteButton.cloneNode(true);
+            if (muteButton.parentNode) {
+                muteButton.parentNode.replaceChild(newMuteButton, muteButton);
+            }
+            
+            newMuteButton.addEventListener('click', () => {
                 this.toggleMute();
             });
             return;
@@ -655,10 +658,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Agregar sonidos a botones
-    const buttons = document.querySelectorAll('button, .ranking-btn, #openTermsBtn');
+    const buttons = document.querySelectorAll('button, .ranking-btn, #openTermsBtn, #closeRankingBtn');
     buttons.forEach(button => {
         button.addEventListener('click', () => {
-            window.soundManager.playSound('menu');
+            if (window.soundManager) {
+                window.soundManager.playSound('menu');
+            }
         });
     });
+    
+    // Forzar inicialización de audio en primer click/touch
+    const forceAudioInit = () => {
+        if (window.soundManager) {
+            window.soundManager.forceAudioStart();
+        }
+        document.removeEventListener('click', forceAudioInit);
+        document.removeEventListener('touchstart', forceAudioInit);
+    };
+    
+    document.addEventListener('click', forceAudioInit);
+    document.addEventListener('touchstart', forceAudioInit);
 });
