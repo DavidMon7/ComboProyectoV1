@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
+    <meta name="description" content="Cuadrado Saltarín Combo: Juego de plataformas retro con sistema de puntuación y ranking">
     <title>Cuadrado Saltarín Combo + Ranking</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +14,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Precargar recursos -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="device-detection.js" as="script">
+    <link rel="preload" href="sound-manager.js" as="script">
+    <link rel="preload" href="script.js" as="script">
 </head>
 <body>
     <main>
@@ -93,14 +101,14 @@
         <span>VER RANKING</span>
     </div>
     
-<div id="rankingModal" class="ranking-modal">
-    <div class="ranking-modal-content" id="rankingModalContent">
-        <span class="ranking-close-btn">&times;</span>
-        <h2>Ranking de Jugadores</h2>
-        <p>Cargando ranking...</p>
-        <button id="closeRankingBtn">CERRAR RANKING</button>
+    <div id="rankingModal" class="ranking-modal">
+        <div class="ranking-modal-content" id="rankingModalContent">
+            <span class="ranking-close-btn">&times;</span>
+            <h2>Ranking de Jugadores</h2>
+            <p>Cargando ranking...</p>
+            <button id="closeRankingBtn">CERRAR RANKING</button>
+        </div>
     </div>
-</div>
     
     <div id="orientation-message">
         <div>
@@ -109,7 +117,21 @@
         </div>
     </div>
     
-    <script src="script.js"></script>
-    <script src="sound-manager.js"></script>
+    <div id="pauseOverlay" class="pause-overlay">
+        <div class="pause-content">
+            <h2>Juego en Pausa</h2>
+            <p>¡Toca para Continuar!</p>
+        </div>
+    </div>
+    
+    <!-- Nuevo botón de control de sonido -->
+    <div id="muteButton" class="sound-control">
+        <span class="sound-icon">🔊</span>
+    </div>
+    
+    <!-- Carga de scripts optimizada -->
+    <script src="device-detection.js" defer></script>
+    <script src="sound-manager.js" defer></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
