@@ -9,6 +9,8 @@
  * - Mejor gestión de colisiones
  */
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("Script principal cargado");
+    
     // Elementos del DOM
     const player = document.getElementById('player');
     const scoreDisplay = document.getElementById('score');
@@ -32,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rankingModalContent = document.getElementById('rankingModalContent');
     const rankingCloseBtn = document.querySelector('.ranking-close-btn');
     const mobileInstructions = document.querySelector('.mobile-instructions');
+    const muteButton = document.getElementById('muteButton');
 
     // Variables del juego
     let playerY = 20;
@@ -67,6 +70,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Referencias a gestores externos
     const soundManager = window.soundManager || null;
+
+    // Asegurar que el botón de sonido tenga su evento
+    if (muteButton && soundManager) {
+        muteButton.addEventListener('click', () => {
+            soundManager.toggleMute();
+        });
+    }
 
     // Funciones de utilidad
     function getRandom(min, max) {
@@ -485,6 +495,8 @@ document.addEventListener('DOMContentLoaded', () => {
      * Iniciar el juego con configuraciones y reinicios apropiados
      */
     function startGame() {
+        console.log("Iniciando juego:", {playerName, playerEmail});
+        
         // Reiniciar variables del juego
         gameRunning = true;
         playerY = 20;
@@ -576,22 +588,43 @@ document.addEventListener('DOMContentLoaded', () => {
     /**
      * Guardar puntuación en el servidor
      */
-function saveScore(name, email, score) {
-    // Simular guardado si estamos en modo local
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        console.log(`Simulando envío de puntuación: ${name}, ${email}, ${score}`);
+    function saveScore(name, email, score) {
+        // Simular guardado si estamos en modo local
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            console.log(`Simulando envío de puntuación: ${name}, ${email}, ${score}`);
+            
+            // Guardar en localStorage como fallback
+            const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
+            rankings.push({ name, email, score, date: new Date().toISOString() });
+            localStorage.setItem('gameRankings', JSON.stringify(rankings));
+            
+            setTimeout(loadRanking, 500);
+            return;
+        }
         
-        // Guardar en localStorage como fallback
-        const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
-        rankings.push({ name, email, score, date: new Date().toISOString() });
-        localStorage.setItem('gameRankings', JSON.stringify(rankings));
-        
-        setTimeout(loadRanking, 500);
-        return;
+        // Enviar al servidor real
+        fetch('/api/ranking', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name, email: email, score: score })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al guardar la puntuación');
+            }
+            return response.json();
+        })
+        .then(() => loadRanking())
+        .catch(error => {
+            console.error('Error al guardar la puntuación:', error);
+            
+            // Fallback: guardar localmente
+            const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
+            rankings.push({ name, email, score, date: new Date().toISOString() });
+            localStorage.setItem('gameRankings', JSON.stringify(rankings));
+            loadRanking();
+        });
     }
-    
-    // Resto del código...
-}
 
     /**
      * Cargar ranking de puntuaciones
@@ -706,15 +739,14 @@ function saveScore(name, email, score) {
 
     // Iniciar juego
     startButton.addEventListener('click', () => {
+        console.log("Botón de inicio clickeado");
         startScreen.style.display = 'none';
-        gameContainer.style.display = 'block';
         startGame();
     });
 
     // Reiniciar juego
     restartButton.addEventListener('click', () => {
         rankingDisplay.style.display = 'none';
-        gameContainer.style.display = 'block';
         startGame();
     });
 
@@ -754,8 +786,12 @@ function saveScore(name, email, score) {
         localStorage.setItem('playerName', playerName);
         localStorage.setItem('playerEmail', playerEmail);
         
-        // Transición a pantalla de inicio
+        console.log("Transición de registro a pantalla de inicio:", playerName, playerEmail);
+        
+        // Ocultar pantalla de registro
         registerScreen.style.display = 'none';
+        
+        // Mostrar pantalla de inicio
         startScreen.style.display = 'flex';
     });
 
@@ -821,6 +857,12 @@ function saveScore(name, email, score) {
         
         if (nameInput) nameInput.value = savedName;
         if (emailInput) emailInput.value = savedEmail;
+        
+        // Opcionalmente, puedes iniciar sesión automáticamente
+        // playerName = savedName;
+        // playerEmail = savedEmail;
+        // registerScreen.style.display = 'none';
+        // startScreen.style.display = 'flex';
     }
     
     // Sistema de detección de dispositivo
@@ -930,29 +972,3 @@ function saveScore(name, email, score) {
         });
     }
 });
-, score, date: new Date().toISOString() });
-            localStorage.setItem('gameRankings', JSON.stringify(rankings));
-            
-            setTimeout(loadRanking, 500);
-            return;
-        }
-        
-        // Enviar al servidor real
-        fetch('/api/ranking', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name, email: email, score: score })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al guardar la puntuación');
-            }
-            return response.json();
-        })
-        .then(() => loadRanking())
-        .catch(error => {
-            console.error('Error al guardar la puntuación:', error);
-            
-            // Fallback: guardar localmente
-            const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
-            rankings.push({ name, email
