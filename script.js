@@ -32,17 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const muteButton = document.getElementById('muteButton');
 
     // Variables del juego
-    let playerY = 20;
-    let playerSpeedY = 0;
+    let playerY = 20; // Posición inicial en el suelo
+    let playerSpeedY = 0; // Velocidad inicial en Y (0 = sin movimiento)
     let gravity = 0.5;
     let isJumping = false;
+    let jumpCount = 0; // Contador de saltos para arreglar el problema de saltos múltiples
     let score = 0;
     let timer = 120;
     let combo = 0;
     let obstacles = [];
     let coins = [];
     let gameRunning = false;
-    let gamePaused = false;  // Nueva variable para controlar el estado de pausa
+    let gamePaused = false;
     let obstacleInterval;
     let coinInterval;
     let timerInterval;
@@ -58,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let baseSpeed = 5; // Velocidad base para obstáculos
     let maxObstacles = 5; // Limitar número de obstáculos
     let maxCoins = 7; // Limitar número de monedas
-    let pauseOverlay = null; // Referencia al overlay de pausa
+    let isOnGround = true; // Nueva variable para controlar si el jugador está en el suelo
 
     // Mostrar instrucciones específicas para móviles si es necesario
     if (window.deviceManager && (window.deviceManager.isMobile || window.deviceManager.isTablet)) {
@@ -73,65 +74,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Asegurar que el botón de sonido tenga su evento
     if (muteButton && soundManager) {
         muteButton.addEventListener('click', () => {
-            soundManager.initSoundFromUserInteraction();
-        }
-    });
-
-    // Términos y condiciones
-    openTermsBtn.addEventListener('click', event => {
-        event.preventDefault();
-        termsModal.style.display = 'flex';
-        
-        if (soundManager) {
-            soundManager.playSound('menu');
-        }
-    });
-
-    acceptTermsBtn.addEventListener('click', () => {
-        termsCheckbox.checked = true;
-        termsModal.style.display = 'none';
-        
-        if (soundManager) {
-            soundManager.playSound('menu');
-        }
-    });
-
-    document.querySelector('.close-btn').addEventListener('click', () => {
-        termsModal.style.display = 'none';
-    });
-
-    // Botón de ranking
-    rankingButton.addEventListener('click', () => {
-        rankingModal.style.display = 'flex';
-        loadRanking();
-        
-        if (soundManager) {
-            soundManager.playSound('menu');
-        }
-    });
-
-    rankingCloseBtn.addEventListener('click', () => {
-        rankingModal.style.display = 'none';
-    });
-
-    // Botón adicional para cerrar ranking
-    const closeRankingBtn = document.getElementById('closeRankingBtn');
-    if (closeRankingBtn) {
-        closeRankingBtn.addEventListener('click', () => {
-            rankingModal.style.display = 'none';
-            
-            if (soundManager) {
-                soundManager.playSound('menu');
-            }
-        });
-    }dManager.toggleMute();
+            soundManager.toggleMute();
         });
     }
 
     // CORRECCIÓN: Inicializar la posición del jugador explícitamente
     if (player) {
+        player.style.position = 'absolute'; // Asegurar que la posición sea absoluta
         player.style.left = '50px';
         player.style.bottom = '20px';
+        // CORRECCIÓN: Establecer explícitamente top como auto para prevenir conflictos
+        player.style.top = 'auto';
     }
 
     // Funciones de utilidad
@@ -206,36 +159,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Función de salto mejorada con física más natural
+     * CORREGIDA para solucionar problemas de salto múltiple
      */
     function jump() {
-        if (!isJumping) {
-            playerSpeedY = -12;
-            isJumping = true;
-            player.classList.add('player-jump');
-            
-            if (soundManager) {
-                soundManager.playSound('jump');
-            }
-        } else if (hasDoubleJump && doubleJumpAvailable) {
-            playerSpeedY = -10;
-            doubleJumpAvailable = false;
-            player.classList.add('player-double-jump');
-            
-            // Efecto visual para el doble salto
-            const jumpEffect = document.createElement('div');
-            jumpEffect.className = 'jump-effect';
-            jumpEffect.style.left = player.style.left;
-            jumpEffect.style.bottom = player.style.bottom;
-            gameContainer.appendChild(jumpEffect);
-            
-            setTimeout(() => {
-                if (jumpEffect.parentNode) {
-                    jumpEffect.remove();
+        if (gameRunning && !gamePaused) {
+            // CORRECCIÓN: Permitir salto solo si está en el suelo o tiene doble salto disponible
+            if (isOnGround) {
+                playerSpeedY = -12;
+                isJumping = true;
+                isOnGround = false;
+                jumpCount = 1; // Primer salto realizado
+                player.classList.add('player-jump');
+                
+                if (soundManager) {
+                    soundManager.playSound('jump');
                 }
-            }, 300);
-            
-            if (soundManager) {
-                soundManager.playSound('jump');
+            } 
+            // CORRECCIÓN: Permitir doble salto solo si está habilitado y es el segundo salto
+            else if (hasDoubleJump && jumpCount === 1) {
+                playerSpeedY = -10;
+                jumpCount = 2; // Segundo salto realizado
+                player.classList.add('player-double-jump');
+                
+                // Efecto visual para el doble salto
+                const jumpEffect = document.createElement('div');
+                jumpEffect.className = 'jump-effect';
+                jumpEffect.style.left = player.style.left;
+                jumpEffect.style.bottom = player.style.bottom;
+                gameContainer.appendChild(jumpEffect);
+                
+                setTimeout(() => {
+                    if (jumpEffect.parentNode) {
+                        jumpEffect.remove();
+                    }
+                }, 300);
+                
+                if (soundManager) {
+                    soundManager.playSound('jump');
+                }
             }
         }
     }
@@ -354,6 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /**
      * Actualización del juego optimizada con delta time para consistencia
+     * CORREGIDA para mantener al jugador en el suelo inicialmente
      */
     function updateGame(timestamp) {
         if (!gameRunning || gamePaused) return;
@@ -373,18 +335,23 @@ document.addEventListener('DOMContentLoaded', () => {
             frameCounter = 0;
         }
         
-        // CORRECCIÓN: Aplicar gravedad de forma más suave y consistente
-        playerSpeedY += gravity * timeScale;
-        playerY += playerSpeedY * timeScale;
+        // CORRECCIÓN: Aplicar gravedad solo si está saltando o no está en el suelo
+        if (isJumping || playerY > 20) {
+            // Aplicar gravedad de forma más suave y consistente
+            playerSpeedY += gravity * timeScale;
+            playerY += playerSpeedY * timeScale;
+        }
         
         // CORRECCIÓN: Límites de la física para evitar que el jugador salga volando
+        // y reiniciar estado de salto cuando toque el suelo
         if (playerY <= 20) {
-            playerY = 20;
-            playerSpeedY = 0;
-            isJumping = false;
+            playerY = 20; // Mantener en el suelo
+            playerSpeedY = 0; // Detener movimiento vertical
+            isJumping = false; // Ya no está saltando
+            isOnGround = true; // Está en el suelo
+            jumpCount = 0; // Reiniciar contador de saltos
             player.classList.remove('player-jump');
             player.classList.remove('player-double-jump');
-            doubleJumpAvailable = true;
         }
         
         // CORRECCIÓN: Mantener el jugador dentro de los límites superiores
@@ -394,13 +361,14 @@ document.addEventListener('DOMContentLoaded', () => {
             playerSpeedY = 0;
         }
         
+        // CORRECCIÓN: Aplicar posición del jugador
         player.style.bottom = `${playerY}px`;
         
         // Actualizar obstáculos
         obstacles = obstacles.filter(obstacle => {
             if (!obstacle.element || !obstacle.element.parentNode) return false;
             
-            // CORRECCIÓN: Usar velocity y deltaTime para mover obstáculos de forma consistente
+            // Usar velocity y deltaTime para mover obstáculos de forma consistente
             obstacle.x -= obstacle.speed * timeScale;
             obstacle.element.style.left = `${obstacle.x}px`;
             
@@ -448,7 +416,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
             
-            // CORRECCIÓN: Mejorar detección del límite de pantalla para eliminar obstáculos
+            // Mejorar detección del límite de pantalla para eliminar obstáculos
             if (obstacle.x < -100) {
                 if (obstacle.element.parentNode) {
                     obstacle.element.remove();
@@ -459,7 +427,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         });
         
-        // CORRECCIÓN: Movimiento de monedas mejorado
+        // Movimiento de monedas mejorado
         coins = coins.filter(coin => {
             if (!coin.element || !coin.element.parentNode) return false;
             
@@ -560,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
             
-            // CORRECCIÓN: Mejorar eliminación de monedas fuera de pantalla
+            // Mejorar eliminación de monedas fuera de pantalla
             if (coin.x < -50) {
                 if (coin.element.parentNode) {
                     coin.element.remove();
@@ -605,8 +573,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reiniciar variables del juego
         gameRunning = true;
         gamePaused = false;
-        playerY = 20;
+        playerY = 20; // CORRECCIÓN: Siempre iniciar en el suelo
         playerSpeedY = 0;
+        isJumping = false;
+        isOnGround = true; // CORRECCIÓN: Iniciar en el suelo
+        jumpCount = 0; // CORRECCIÓN: Iniciar con contador de saltos en 0
         score = 0;
         timer = 120;
         combo = 0;
@@ -635,9 +606,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Resetear jugador
         player.style.backgroundColor = '#007bff';
         player.style.bottom = `${playerY}px`;
-        player.style.left = '50px'; // CORRECCIÓN: Asegurar posición X correcta
+        player.style.left = '50px';
+        player.style.top = 'auto'; // CORRECCIÓN: Evitar que top sobrescriba bottom
+        player.style.display = 'block';
         player.classList.remove('player-jump', 'player-double-jump');
-        player.style.display = 'block'; // CORRECCIÓN: Asegurar que el jugador sea visible
         
         // Configurar intervalos
         clearInterval(obstacleInterval);
@@ -725,6 +697,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gameRunning = true;
         
         // Ocultar overlay de pausa
+        const pauseOverlay = document.getElementById('pauseOverlay');
         if (pauseOverlay) {
             pauseOverlay.style.display = 'none';
         }
@@ -740,10 +713,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     /**
-     * Muestra el overlay de pausa con botones para continuar o salir
+     * CORRECCIÓN: Mostrar el overlay de pausa con botones para continuar o salir
      */
     function showPauseOverlay() {
-        // Crear overlay de pausa si no existe
+        // Crear o actualizar overlay de pausa
+        let pauseOverlay = document.getElementById('pauseOverlay');
+        
         if (!pauseOverlay) {
             pauseOverlay = document.createElement('div');
             pauseOverlay.id = 'pauseOverlay';
@@ -751,7 +726,7 @@ document.addEventListener('DOMContentLoaded', () => {
             pauseOverlay.innerHTML = `
                 <div class="pause-content">
                     <h2>Juego en Pausa</h2>
-                    <p>El juego está en pausa.</p>
+                    <p>¿Qué deseas hacer?</p>
                     <div class="pause-buttons">
                         <button id="resumeButton" class="pause-button">Continuar</button>
                         <button id="exitPauseButton" class="pause-button secondary">Salir</button>
@@ -759,123 +734,93 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             document.body.appendChild(pauseOverlay);
-            
-            // Evento para el botón de continuar
-            const resumeButton = document.getElementById('resumeButton');
-            if (resumeButton) {
-                resumeButton.addEventListener('click', () => {
-                    resumeGame();
-                });
-            }
-            
-            // Evento para el botón de salir
-            const exitPauseButton = document.getElementById('exitPauseButton');
-            if (exitPauseButton) {
-                exitPauseButton.addEventListener('click', () => {
-                    // Ocultar pausa y mostrar pantalla de inicio
-                    pauseOverlay.style.display = 'none';
-                    gamePaused = false;
-                    gameRunning = false;
-                    startScreen.style.display = 'flex';
-                    
-                    // Detener música
-                    if (soundManager) {
-                        soundManager.pauseSound('background');
-                    }
-                });
+        } else {
+            // Si ya existe, pero tiene formato antiguo, actualizarlo
+            if (!pauseOverlay.querySelector('#resumeButton')) {
+                pauseOverlay.innerHTML = `
+                    <div class="pause-content">
+                        <h2>Juego en Pausa</h2>
+                        <p>¿Qué deseas hacer?</p>
+                        <div class="pause-buttons">
+                            <button id="resumeButton" class="pause-button">Continuar</button>
+                            <button id="exitPauseButton" class="pause-button secondary">Salir</button>
+                        </div>
+                    </div>
+                `;
             }
         }
         
         pauseOverlay.style.display = 'flex';
-    }
-
-    // ----- EVENTOS DEL JUEGO -----
-    
-    // Control de teclado
-    document.addEventListener('keydown', event => {
-        if (event.code === 'Space' && gameRunning && !gamePaused) {
-            event.preventDefault(); // Evitar scroll en la página
-            jump();
-        } else if (event.code === 'Escape' || event.code === 'KeyP') {
-            // Alternar pausa con Escape o P
-            if (gameRunning && !gamePaused) {
-                pauseGame();
-            } else if (gamePaused) {
+        
+        // Asegurarse de que los botones tengan sus event listeners
+        const resumeButton = document.getElementById('resumeButton');
+        if (resumeButton) {
+            // Eliminar listeners anteriores para evitar duplicados
+            const newResumeButton = resumeButton.cloneNode(true);
+            resumeButton.parentNode.replaceChild(newResumeButton, resumeButton);
+            
+            newResumeButton.addEventListener('click', () => {
                 resumeGame();
-            }
-        }
-    });
-
-    // Control táctil
-    gameContainer.addEventListener('touchstart', event => {
-        if (gameRunning && !gamePaused) {
-            event.preventDefault(); // Prevenir zoom
-            jump();
-        }
-    }, { passive: false });
-
-    // Iniciar juego
-    startButton.addEventListener('click', () => {
-        console.log("Botón de inicio clickeado");
-        startScreen.style.display = 'none';
-        startGame();
-        
-        // Intentar iniciar audio si existe soundManager
-        if (soundManager && typeof soundManager.initSoundFromUserInteraction === 'function') {
-            soundManager.initSoundFromUserInteraction();
-        }
-    });
-
-    // Reiniciar juego
-    restartButton.addEventListener('click', () => {
-        rankingDisplay.style.display = 'none';
-        startGame();
-    });
-
-    // Registro de jugador
-    registerForm.addEventListener('submit', event => {
-        event.preventDefault();
-        
-        // Obtener y validar datos
-        const nameInput = document.getElementById('playerName');
-        const emailInput = document.getElementById('playerEmail');
-        
-        playerName = nameInput.value.trim();
-        playerEmail = emailInput.value.trim();
-        
-        // Validaciones básicas
-        if (!playerName) {
-            alert("Por favor, ingresa tu nombre de jugador");
-            nameInput.focus();
-            return;
+            });
         }
         
-        if (!playerEmail) {
-            alert("Por favor, ingresa tu correo electrónico");
-            emailInput.focus();
-            return;
+        // Botón para salir al menú principal
+        const exitPauseButton = document.getElementById('exitPauseButton');
+        if (exitPauseButton) {
+            // Eliminar listeners anteriores para evitar duplicados
+            const newExitButton = exitPauseButton.cloneNode(true);
+            exitPauseButton.parentNode.replaceChild(newExitButton, exitPauseButton);
+            
+            newExitButton.addEventListener('click', () => {
+                // Ocultar pausa y mostrar pantalla de inicio
+                pauseOverlay.style.display = 'none';
+                gamePaused = false;
+                gameRunning = false;
+                startScreen.style.display = 'flex';
+                
+                // Detener música
+                if (soundManager) {
+                    soundManager.pauseSound('background');
+                }
+            });
         }
         
-        if (!termsCheckbox.checked) {
-            alert("Debes aceptar los términos y condiciones para continuar");
-            return;
+        // CORRECCIÓN: Añadir estilos para el overlay si no existen
+        if (!document.getElementById('pause-overlay-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'pause-overlay-styles';
+            styles.textContent = `
+                .pause-buttons {
+                    display: flex;
+                    justify-content: center;
+                    gap: 20px;
+                    margin-top: 20px;
+                }
+                
+                .pause-button {
+                    background: linear-gradient(to bottom, #000000, #111111);
+                    color: #00ffff;
+                    border: 3px solid #00ffff;
+                    box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+                    border-radius: 8px;
+                    cursor: pointer;
+                    padding: 10px 20px;
+                    font-family: 'Press Start 2P', monospace;
+                    font-size: 14px;
+                    min-width: 120px;
+                    touch-action: manipulation;
+                }
+                
+                .pause-button.secondary {
+                    color: #ff00ff;
+                    border-color: #ff00ff;
+                    box-shadow: 0 0 15px rgba(255, 0, 255, 0.7);
+                }
+                
+                .pause-button:hover {
+                    transform: scale(1.05);
+                }
+            `;
+            document.head.appendChild(styles);
         }
-        
-        // Limitar longitud del nombre
-        playerName = playerName.substring(0, 15);
-        
-        // Guardar en localStorage para futuras sesiones
-        localStorage.setItem('playerName', playerName);
-        localStorage.setItem('playerEmail', playerEmail);
-        
-        console.log("Transición de registro a pantalla de inicio:", playerName, playerEmail);
-        
-        // Ocultar pantalla de registro
-        registerScreen.style.display = 'none';
-        
-        // Mostrar pantalla de inicio
-        startScreen.style.display = 'flex';
-        
-        // Intentar iniciar audio si existe soundManager
-        if (soundManager && typeof soundManager.initSoundFromUserInteraction === 'function') {
-            soun
+    }
