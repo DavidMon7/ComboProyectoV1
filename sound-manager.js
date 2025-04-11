@@ -47,6 +47,22 @@ class SoundManager {
             if (window.AudioContext || window.webkitAudioContext) {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 
+                // CORRECCIÓN: Asegurar que el contexto está corriendo
+                if (this.audioContext.state === 'suspended') {
+                    const resumeAudio = () => {
+                        this.audioContext.resume();
+                        
+                        // Eliminar event listeners después de reanudar
+                        document.removeEventListener('click', resumeAudio);
+                        document.removeEventListener('touchstart', resumeAudio);
+                        document.removeEventListener('keydown', resumeAudio);
+                    };
+                    
+                    document.addEventListener('click', resumeAudio);
+                    document.addEventListener('touchstart', resumeAudio);
+                    document.addEventListener('keydown', resumeAudio);
+                }
+                
                 // Crear nodos de ganancia para control de volumen
                 this.masterGain = this.audioContext.createGain();
                 this.musicGain = this.audioContext.createGain();
@@ -69,7 +85,7 @@ class SoundManager {
             
             this.initialized = true;
             
-            // Cargar sonidos
+            // Cargar sonidos con CDNs alternativos
             this.loadGameSounds();
         } catch (e) {
             console.error("Error al inicializar el sistema de audio:", e);
@@ -98,55 +114,55 @@ class SoundManager {
      * Carga todos los sonidos del juego con URLs optimizadas
      */
     loadGameSounds() {
-        // Fuentes de audio modernas y optimizadas con múltiples formatos para compatibilidad
+        // Fuentes de audio alternativos y más confiables
         const soundSources = {
-            // Música de fondo - versión moderna con mejor loop
+            // Música de fondo - CDNs alternativos
             background: {
-                mp3: 'https://assets.mixkit.co/music/preview/mixkit-game-level-music-689.mp3',
-                ogg: 'https://assets.mixkit.co/music/preview/mixkit-game-level-music-689.ogg',
-                fallback: 'https://freesound.org/data/previews/473/473584_5674468-lq.mp3'
+                mp3: 'https://cdn.freesound.org/previews/638/638933_7173575-lq.mp3', // Backup de freesound
+                ogg: 'https://cdn.freesound.org/previews/638/638933_7173575-lq.ogg',
+                fallback: 'https://cdn.freesound.org/previews/632/632633_13874916-lq.mp3'
             },
-            // Sonido de salto más nítido
+            // Sonido de salto
             jump: {
-                mp3: 'https://assets.mixkit.co/sfx/preview/mixkit-quick-jump-arcade-game-239.mp3',
-                ogg: 'https://assets.mixkit.co/sfx/preview/mixkit-quick-jump-arcade-game-239.ogg',
-                fallback: 'https://freesound.org/data/previews/369/369515_6687899-lq.mp3'
+                mp3: 'https://cdn.freesound.org/previews/412/412068_5121236-lq.mp3', 
+                ogg: 'https://cdn.freesound.org/previews/412/412068_5121236-lq.ogg',
+                fallback: 'https://cdn.freesound.org/previews/369/369515_6687899-lq.mp3'
             },
-            // Sonido de moneda mejorado
+            // Sonido de moneda
             coin: {
-                mp3: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3',
-                ogg: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.ogg',
-                fallback: 'https://freesound.org/data/previews/341/341695_5858296-lq.mp3'
+                mp3: 'https://cdn.freesound.org/previews/341/341695_5858296-lq.mp3',
+                ogg: 'https://cdn.freesound.org/previews/341/341695_5858296-lq.ogg',
+                fallback: 'https://cdn.freesound.org/previews/512/512216_7383358-lq.mp3'
             },
-            // Sonido de colisión más impactante
+            // Sonido de colisión
             hit: {
-                mp3: 'https://assets.mixkit.co/sfx/preview/mixkit-falling-hit-757.mp3',
-                ogg: 'https://assets.mixkit.co/sfx/preview/mixkit-falling-hit-757.ogg',
-                fallback: 'https://freesound.org/data/previews/331/331912_5883485-lq.mp3'
+                mp3: 'https://cdn.freesound.org/previews/331/331912_5883485-lq.mp3',
+                ogg: 'https://cdn.freesound.org/previews/331/331912_5883485-lq.ogg',
+                fallback: 'https://cdn.freesound.org/previews/512/512769_2393494-lq.mp3'
             },
-            // Click de menú más responsivo
+            // Click de menú
             menu: {
-                mp3: 'https://assets.mixkit.co/sfx/preview/mixkit-electronic-retro-block-hit-2185.mp3',
-                ogg: 'https://assets.mixkit.co/sfx/preview/mixkit-electronic-retro-block-hit-2185.ogg',
-                fallback: 'https://freesound.org/data/previews/242/242501_4284968-lq.mp3'
+                mp3: 'https://cdn.freesound.org/previews/242/242501_4284968-lq.mp3',
+                ogg: 'https://cdn.freesound.org/previews/242/242501_4284968-lq.ogg',
+                fallback: 'https://cdn.freesound.org/previews/403/403013_5121236-lq.mp3'
             },
-            // Nuevo sonido para inicio del juego
+            // Sonido de inicio del juego
             start: {
-                mp3: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-complete-or-approved-mission-205.mp3',
-                ogg: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-complete-or-approved-mission-205.ogg',
-                fallback: 'https://freesound.org/data/previews/270/270545_5123839-lq.mp3'
+                mp3: 'https://cdn.freesound.org/previews/270/270545_5123839-lq.mp3',
+                ogg: 'https://cdn.freesound.org/previews/270/270545_5123839-lq.ogg',
+                fallback: 'https://cdn.freesound.org/previews/320/320775_5123839-lq.mp3'
             },
-            // Nuevo sonido para combo
+            // Sonido para combo
             combo: {
-                mp3: 'https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.mp3',
-                ogg: 'https://assets.mixkit.co/sfx/preview/mixkit-unlock-game-notification-253.ogg',
-                fallback: 'https://freesound.org/data/previews/270/270404_5123839-lq.mp3'
+                mp3: 'https://cdn.freesound.org/previews/270/270404_5123839-lq.mp3',
+                ogg: 'https://cdn.freesound.org/previews/270/270404_5123839-lq.ogg',
+                fallback: 'https://cdn.freesound.org/previews/584/584847_3160831-lq.mp3'
             },
             // Sonido para game over
             gameOver: {
-                mp3: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.mp3',
-                ogg: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-retro-game-over-213.ogg',
-                fallback: 'https://freesound.org/data/previews/270/270402_5123839-lq.mp3'
+                mp3: 'https://cdn.freesound.org/previews/270/270402_5123839-lq.mp3',
+                ogg: 'https://cdn.freesound.org/previews/270/270402_5123839-lq.ogg',
+                fallback: 'https://cdn.freesound.org/previews/363/363117_6442512-lq.mp3'
             }
         };
         
@@ -250,17 +266,18 @@ class SoundManager {
      * Reproduce un sonido
      */
     playSound(name) {
+        // No hacer nada si está silenciado
         if (this.isMuted) return;
         
         try {
-            // Comprobar si es música de fondo
+            // Manejo especial para la música de fondo
             if (name === 'background') {
                 this.playMusic();
                 return;
             }
             
             // Si tenemos pool de sonidos, usar eso (mejor para efectos)
-            if (this.soundPools[name]) {
+            if (this.soundPools[name] && this.soundPools[name].length > 0) {
                 this.playSoundFromPool(name);
                 return;
             }
@@ -268,9 +285,21 @@ class SoundManager {
             // Fallback al método tradicional
             const sound = this.sounds[name];
             if (sound) {
-                // Reiniciar y reproducir
+                // CORRECCIÓN: Mejor manejo de errores en reproducción
                 sound.currentTime = 0;
-                sound.play().catch(e => console.warn(`Error reproduciendo ${name}:`, e));
+                
+                const playPromise = sound.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(e => {
+                        console.warn(`Error reproduciendo ${name}:`, e);
+                        
+                        // Si es un error de interacción, intentar usar el contexto de audio para forzar el inicio
+                        if (e.name === 'NotAllowedError' && this.audioContext) {
+                            // Forzar la activación del contexto de audio
+                            this.audioContext.resume();
+                        }
+                    });
+                }
             }
         } catch (e) {
             console.warn(`Error al reproducir sonido ${name}:`, e);
@@ -522,6 +551,61 @@ class SoundManager {
         const sound = new Audio();
         sound.volume = 0; // Silencioso
         this.sounds[name] = sound;
+    }
+    
+    /**
+     * Método de inicialización forzada para usar en eventos de usuario
+     */
+    forceAudioStart() {
+        // Desbloquear Web Audio API
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+        
+        // Intentar reproducir un sonido silencioso para desbloquear audio en iOS
+        const silentSound = document.createElement('audio');
+        silentSound.src = 'data:audio/mpeg;base64,SUQzAwAAAAAAI1RTU0UAAAAPAAADTGF2ZjU4LjMyLjEwNAAAAAAAAAAAAAAA//tQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAABAAADQgD///////////////////////////////////////////////////////////////////8AAAA5TEFNRTMuMTAwAZYAAAAAAAAAABQ4JAMGQgAAMAAAA0LPJCv2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';
+        silentSound.volume = 0.01; // Volumen casi inaudible
+        silentSound.play().catch(e => console.log('Silent audio play failed, but that\'s okay'));
+        
+        // Intentar reproducir un efecto de sonido corto para iOS y Safari
+        if (this.sounds['menu']) {
+            const menuSound = this.sounds['menu'];
+            menuSound.volume = 0.01; // Volumen casi inaudible
+            menuSound.play().catch(e => console.log('Menu sound play failed, but audio might be unblocked now'));
+        }
+        
+        console.log('Audio system force start attempted');
+        return true;
+    }
+    
+    /**
+     * Inicializa el sonido desde un evento de usuario como click
+     */
+    initSoundFromUserInteraction() {
+        // Esta función debe llamarse desde eventos de usuario como click o touch
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+            this.audioContext.resume();
+        }
+        
+        // Iteramos a través de todos los sonidos cargados y los precargamos correctamente
+        for (const name in this.sounds) {
+            const sound = this.sounds[name];
+            if (sound && sound instanceof HTMLAudioElement) {
+                // Forzar la carga del audio
+                sound.load();
+                // Reproducir brevemente a volumen 0 y luego pausar
+                sound.volume = 0;
+                sound.play().then(() => {
+                    setTimeout(() => {
+                        sound.pause();
+                        sound.volume = name === 'background' ? this.musicVolume : this.sfxVolume;
+                    }, 50);
+                }).catch(e => {
+                    console.warn(`Preload de ${name} falló, pero continuamos:`, e);
+                });
+            }
+        }
     }
     
     /**
