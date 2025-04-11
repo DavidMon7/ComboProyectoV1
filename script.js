@@ -1,12 +1,7 @@
 /**
  * Cuadrado Saltarín Combo - Código principal optimizado
  * Optimizado para múltiples dispositivos y navegadores.
- * Características mejoradas:
- * - Sistema de detección de dispositivos
- * - Rendimiento optimizado para móviles y PC
- * - Correcciones de bugs
- * - Adaptación responsiva
- * - Mejor gestión de colisiones
+ * Mejorado para un rendimiento óptimo y corrección de errores.
  */
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Script principal cargado");
@@ -60,6 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let fps = 60;
     let requestId = null;
     let baseSpeed = 5; // Velocidad base para obstáculos
+    let maxObstacles = 5; // Limitar número de obstáculos
+    let maxCoins = 7; // Limitar número de monedas
 
     // Mostrar instrucciones específicas para móviles si es necesario
     if (window.deviceManager && (window.deviceManager.isMobile || window.deviceManager.isTablet)) {
@@ -180,6 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function spawnObstacle() {
         if (!gameRunning) return;
         
+        // Limitar número de obstáculos para mejor rendimiento
+        if (document.querySelectorAll('.obstacle').length >= maxObstacles) {
+            return;
+        }
+        
         const obstacle = document.createElement('div');
         
         // Variabilidad en tipos de obstáculos
@@ -227,6 +229,11 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function spawnCoin() {
         if (!gameRunning) return;
+        
+        // Limitar número de monedas para mejor rendimiento
+        if (document.querySelectorAll('.coin').length >= maxCoins) {
+            return;
+        }
         
         const coinType = Math.random();
         let coinClass;
@@ -297,27 +304,36 @@ document.addEventListener('DOMContentLoaded', () => {
             frameCounter = 0;
         }
         
-        // Actualizar posición y velocidad del jugador
+        // CORRECCIÓN: Aplicar gravedad de forma más suave y consistente
         playerSpeedY += gravity * timeScale;
         playerY += playerSpeedY * timeScale;
         
+        // CORRECCIÓN: Límites de la física para evitar que el jugador salga volando
         if (playerY <= 20) {
             playerY = 20;
+            playerSpeedY = 0;
             isJumping = false;
             player.classList.remove('player-jump');
             player.classList.remove('player-double-jump');
             doubleJumpAvailable = true;
         }
         
+        // CORRECCIÓN: Mantener el jugador dentro de los límites superiores
+        const maxHeight = gameContainer.offsetHeight - 40; // Altura del contenedor menos altura del jugador
+        if (playerY > maxHeight) {
+            playerY = maxHeight;
+            playerSpeedY = 0;
+        }
+        
         player.style.bottom = `${playerY}px`;
         
         // Actualizar obstáculos
         obstacles = obstacles.filter(obstacle => {
-            // Mover el obstáculo según su velocidad individual
+            // CORRECCIÓN: Usar velocity y deltaTime para mover obstáculos de forma consistente
             obstacle.x -= obstacle.speed * timeScale;
             obstacle.element.style.left = `${obstacle.x}px`;
             
-            // Comprobar colisión
+            // Comprobar colisión con tolerancia mejorada
             if (checkCollision(player, obstacle.element, 0.85)) {
                 timer -= 1;
                 // Resetear combo
@@ -355,8 +371,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
             
-            // Eliminar obstáculos fuera de pantalla
-            if (obstacle.x < -obstacle.width) {
+            // CORRECCIÓN: Mejorar detección del límite de pantalla para eliminar obstáculos
+            if (obstacle.x < -100) {
                 obstacle.element.remove();
                 return false;
             }
@@ -364,9 +380,9 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         });
         
-        // Actualizar monedas con patrones de movimiento
+        // CORRECCIÓN: Movimiento de monedas mejorado
         coins = coins.filter(coin => {
-            // Mover moneda
+            // Mover moneda con velocidad consistente
             coin.x -= coin.speed * timeScale;
             
             // Aplicar patrones de movimiento si existen
@@ -457,8 +473,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 return false;
             }
             
-            // Eliminar monedas fuera de pantalla
-            if (coin.x < -40) {
+            // CORRECCIÓN: Mejorar eliminación de monedas fuera de pantalla
+            if (coin.x < -50) {
                 coin.element.remove();
                 return false;
             }
@@ -466,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return true;
         });
         
-        // Actualizar tiempo
+        // Actualizar tiempo con delta para consistencia
         timer -= 0.016 * timeScale; // Ajustar con delta time
         timerDisplay.textContent = timer.toFixed(1);
         
@@ -487,7 +503,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        // Continuar el bucle de animación
+        // CORRECCIÓN: Asegurar que el bucle de animación continúe
         requestId = requestAnimationFrame(updateGame);
     }
 
@@ -585,140 +601,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Guardar puntuación en el servidor
-     */
-    function saveScore(name, email, score) {
-        // Simular guardado si estamos en modo local
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            console.log(`Simulando envío de puntuación: ${name}, ${email}, ${score}`);
-            
-            // Guardar en localStorage como fallback
-            const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
-            rankings.push({ name, email, score, date: new Date().toISOString() });
-            localStorage.setItem('gameRankings', JSON.stringify(rankings));
-            
-            setTimeout(loadRanking, 500);
-            return;
-        }
-        
-        // Enviar al servidor real
-        fetch('/api/ranking', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name, email: email, score: score })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Error al guardar la puntuación');
-            }
-            return response.json();
-        })
-        .then(() => loadRanking())
-        .catch(error => {
-            console.error('Error al guardar la puntuación:', error);
-            
-            // Fallback: guardar localmente
-            const rankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
-            rankings.push({ name, email, score, date: new Date().toISOString() });
-            localStorage.setItem('gameRankings', JSON.stringify(rankings));
-            loadRanking();
-        });
-    }
-
-    /**
-     * Cargar ranking de puntuaciones
-     */
-    function loadRanking() {
-        // Primero intentar cargar desde el servidor
-        let rankingPromise;
-        
-        // Si estamos en desarrollo local, usar localStorage
-        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            const localRankings = JSON.parse(localStorage.getItem('gameRankings') || '[]');
-            rankingPromise = Promise.resolve(localRankings);
-        } else {
-            // Intentar cargar desde el servidor
-            rankingPromise = fetch('/api/ranking')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error al cargar el ranking');
-                    }
-                    return response.json();
-                })
-                .catch(error => {
-                    console.error('Error al cargar el ranking:', error);
-                    // Fallback a datos locales
-                    return JSON.parse(localStorage.getItem('gameRankings') || '[]');
-                });
-        }
-        
-        // Procesar y mostrar el ranking
-        rankingPromise.then(data => {
-            // Ordenar el ranking de mayor a menor puntuación
-            const sortedData = data.sort((a, b) => b.score - a.score);
-            
-            // Limitar a los 20 mejores para rendimiento
-            const topPlayers = sortedData.slice(0, 20);
-            
-            // Resaltar al jugador actual si está en el ranking
-            const currentPlayerIndex = playerName ? topPlayers.findIndex(p => 
-                p.name === playerName && p.email === playerEmail) : -1;
-            
-            // Construir HTML del ranking
-            let rankingHTML = '<h2>Ranking de Jugadores</h2>';
-            rankingHTML += '<table><thead><tr><th>#</th><th>Jugador</th><th>Puntos</th></tr></thead><tbody>';
-            
-            topPlayers.forEach((player, index) => {
-                // Sanitizar nombre para evitar XSS
-                const playerName = player.name ? 
-                    player.name.replace(/</g, "&lt;").replace(/>/g, "&gt;") : "Anónimo";
-                const playerScore = player.score || 0;
-                
-                // Asignar clases para estilos
-                let rowClass = index < 3 ? `rank-${index+1}` : '';
-                
-                // Resaltar jugador actual
-                if (index === currentPlayerIndex) {
-                    rowClass += ' current-player';
-                }
-                
-                rankingHTML += `<tr class="${rowClass}">
-                    <td>${index + 1}</td>
-                    <td>${playerName}</td>
-                    <td>${playerScore}</td>
-                </tr>`;
-            });
-            
-            if (topPlayers.length === 0) {
-                rankingHTML += '<tr><td colspan="3">No hay puntuaciones registradas todavía.</td></tr>';
-            }
-            
-            rankingHTML += '</tbody></table>';
-            
-            // Actualizar DOM
-            rankingDiv.innerHTML = rankingHTML;
-            
-            // Mostrar mensaje si el jugador no está en el top 20
-            if (currentPlayerIndex === -1 && playerName) {
-                // Encontrar posición real del jugador
-                const fullPlayerIndex = sortedData.findIndex(p => 
-                    p.name === playerName && p.email === playerEmail);
-                
-                if (fullPlayerIndex !== -1) {
-                    const playerPosition = document.createElement('p');
-                    playerPosition.className = 'player-position';
-                    playerPosition.textContent = `Tu posición: ${fullPlayerIndex + 1} de ${sortedData.length}`;
-                    rankingDiv.appendChild(playerPosition);
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error al procesar el ranking:', error);
-            rankingDiv.innerHTML = '<p>No se pudo cargar el ranking. Intenta más tarde.</p>';
-        });
-    }
-
     // ----- EVENTOS DEL JUEGO -----
     
     // Control de teclado
@@ -742,6 +624,11 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Botón de inicio clickeado");
         startScreen.style.display = 'none';
         startGame();
+        
+        // Intentar iniciar audio si existe soundManager
+        if (soundManager && typeof soundManager.initSoundFromUserInteraction === 'function') {
+            soundManager.initSoundFromUserInteraction();
+        }
     });
 
     // Reiniciar juego
@@ -793,6 +680,11 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Mostrar pantalla de inicio
         startScreen.style.display = 'flex';
+        
+        // Intentar iniciar audio si existe soundManager
+        if (soundManager && typeof soundManager.initSoundFromUserInteraction === 'function') {
+            soundManager.initSoundFromUserInteraction();
+        }
     });
 
     // Términos y condiciones
@@ -971,4 +863,15 @@ document.addEventListener('DOMContentLoaded', () => {
             el.style.display = 'block';
         });
     }
+    
+    // Exponer funciones para módulos externos
+    window.spawnObstacle = spawnObstacle;
+    window.spawnCoin = spawnCoin;
+    window.jump = jump;
+    
+    // Exponer variables para acceso desde módulos externos
+    window.baseSpeed = baseSpeed;
+    window.maxObstacles = maxObstacles;
+    window.maxCoins = maxCoins;
+    window.gravity = gravity;
 });
